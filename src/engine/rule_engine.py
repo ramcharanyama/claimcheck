@@ -785,21 +785,74 @@ def _evaluate_non_payable_items(
     )
 
 
+# Generic legal and structural words. They appear in almost any ambiguity description
+# and in ordinary claim text ("policy number", "claim filed"), so they must not decide
+# whether a claim fact relates to an ambiguity. Only subject words (e.g. "existing",
+# "condition") should.
+_AMBIGUITY_GENERIC_TERMS = frozenset({
+    "policy", "policies", "claim", "claims", "claimant", "coverage", "cover", "covered", "insurer",
+    "insured", "person", "persons", "document", "documents", "clause", "clauses", "section", "sections",
+    "term", "terms", "define", "defined", "defining", "definition", "definitions", "undefined",
+    "applicable", "apply", "applies", "regulation", "regulations", "regulatory", "statutory",
+    "framework", "reference", "references", "referenced", "refers", "missing", "neither", "either",
+    "whether", "under", "with", "within", "without", "from", "shall", "that", "this", "these",
+    "those", "which", "where", "there", "their", "they", "have", "been", "being", "does", "into",
+    "until", "expiration", "excluded", "exclusion", "exclusions", "indemnified", "arising",
+    "attributable", "provide", "provided", "providing", "specify", "specified", "specifying",
+    "lookback", "period", "periods", "duration", "waiting", "amount", "date", "dates",
+})
+
+
+def _norm_term(token: str) -> str:
+    """Lowercase and drop a plural 's' so 'conditions' matches 'condition'."""
+    token = token.lower()
+    return token[:-1] if len(token) > 4 and token.endswith("s") and not token.endswith("ss") else token
+
+
+def _ambiguity_terms(amb: Ambiguity) -> set:
+    """Subject words of an ambiguity, from its issue and description."""
+    tokens = re.split(r"[^a-z0-9]+", f"{amb.issue} {amb.description}".lower())
+    return {_norm_term(t) for t in tokens if len(t) > 3 and t not in _AMBIGUITY_GENERIC_TERMS}
+
+
+def _fact_terms(name: str, value: Any) -> set:
+    """Words from a fact's non-empty leaves: each key (split on underscores) plus its value.
+    Empty leaves (None, "", [], {}) contribute nothing, so a blank field is not evidence."""
+    terms: set = set()
+
+    def words(text: str) -> set:
+        return {_norm_term(t) for t in re.split(r"[^a-z0-9]+", str(text).lower()) if len(t) > 3}
+
+    def walk(key: str, val: Any) -> None:
+        if val is None or val == "" or val == [] or val == {}:
+            return
+        if isinstance(val, dict):
+            for k, v in val.items():
+                walk(str(k), v)
+            return
+        if isinstance(val, (list, tuple)):
+            for v in val:
+                walk(key, v)
+            return
+        terms.update(words(key))
+        terms.update(words(val))
+
+    walk(name, value)
+    return terms
+
+
+def _fact_relates_to_ambiguity(amb: Ambiguity, fact: ClaimFact) -> bool:
+    return bool(_ambiguity_terms(amb) & _fact_terms(fact.name, fact.value))
+
+
 def _evaluate_ambiguity(
     amb: Ambiguity,
     facts_by_name: Dict[str, ClaimFact],
     all_facts: List[ClaimFact],
 ) -> Finding:
     """Evaluate a documented policy ambiguity without hardcoded rule IDs."""
-    # Find facts that relate to this ambiguity via section, issue, or description terms
-    search_terms = set(re.findall(r"\w+", f"{amb.issue} {amb.description} {amb.section}".lower()))
-    relevant_terms = {t for t in search_terms if len(t) > 3 and t not in ("under", "with", "from", "shall", "that", "this")}
-
-    relevant_facts = []
-    for f in all_facts:
-        f_text = f"{f.name} {f.value}".lower()
-        if any(term in f_text for term in relevant_terms):
-            relevant_facts.append(f)
+    # Find facts that relate to this ambiguity by its subject words (not generic legal words)
+    relevant_facts = [f for f in all_facts if _fact_relates_to_ambiguity(amb, f)]
 
     if not relevant_facts:
         return Finding(
@@ -928,12 +981,7 @@ def evaluate(
     ambiguities = getattr(rulebook, "ambiguities", [])
     for amb in ambiguities:
         is_requested = rule_ids is not None and amb.ambiguity_id in rule_ids
-        is_relevant_in_all = rule_ids is None and any(
-            re.search(rf"\b{re.escape(t)}\b", f"{f.name} {f.value}".lower())
-            for f in facts
-            for t in re.findall(r"\w+", f"{amb.issue} {amb.description}".lower())
-            if len(t) > 3
-        )
+        is_relevant_in_all = rule_ids is None and any(_fact_relates_to_ambiguity(amb, f) for f in facts)
 
         if is_requested or is_relevant_in_all:
             finding = _evaluate_ambiguity(amb, facts_by_name, facts)

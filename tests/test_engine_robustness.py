@@ -262,3 +262,64 @@ def test_generic_ambiguity_evaluation_without_hardcoded_id():
     findings_irr = evaluate(rb, irrelevant_fact, rule_ids=["CUSTOM_AMB_001"])
     assert len(findings_irr) == 1
     assert findings_irr[0].status == FindingStatus.UNABLE_TO_VERIFY.value
+
+
+# -----------------------------------------------------------------------------
+# Ambiguity relevance: subject words decide, not generic legal words
+# -----------------------------------------------------------------------------
+def _gold_rulebook_with_pre_existing_ambiguity():
+    import json
+    from pathlib import Path
+    path = Path(__file__).resolve().parent.parent / "data" / "gold_rulebook.json"
+    return Rulebook.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
+def _amb_statuses(rulebook, facts):
+    return {f.rule_id: str(getattr(f.status, "value", f.status))
+            for f in evaluate(rulebook, facts) if f.rule_id.startswith("AMB")}
+
+
+_SRC = SourceRef(document="claim_form.pdf", page=1, quote="x")
+
+
+def test_ambiguity_not_triggered_by_generic_word_policy():
+    rb = _gold_rulebook_with_pre_existing_ambiguity()
+    facts = [ClaimFact(name="claim_form_summary",
+                       value={"policy_number": "POL-AURA-2026-001", "note": "Claim filed under policy for dengue fever"},
+                       source=_SRC)]
+    assert _amb_statuses(rb, facts) == {}
+
+
+def test_ambiguity_triggered_by_pre_existing_history_without_word_policy():
+    rb = _gold_rulebook_with_pre_existing_ambiguity()
+    facts = [ClaimFact(name="patient_medical_history",
+                       value={"diagnosis": "type_2_diabetes",
+                              "pre_existing_history": "Known diabetic for 5 years before enrolment",
+                              "hospitalization_cause": "diabetic ketoacidosis", "claimed_amount": 42000},
+                       source=_SRC)]
+    assert _amb_statuses(rb, facts) == {"AMB_PRE_EXISTING_CONDITIONS": "needs_review"}
+
+
+def test_empty_pre_existing_history_is_not_evidence():
+    rb = _gold_rulebook_with_pre_existing_ambiguity()
+    facts = [ClaimFact(name="patient_medical_history",
+                       value={"diagnosis": "dengue_fever", "pre_existing_history": None,
+                              "hospitalization_cause": "dengue fever", "claimed_amount": None},
+                       source=_SRC)]
+    assert _amb_statuses(rb, facts) == {}
+
+
+def test_ambiguity_matching_works_for_differently_worded_ambiguity():
+    rb = _gold_rulebook_with_pre_existing_ambiguity()
+    reworded = rb.ambiguities[0].model_copy(update={
+        "ambiguity_id": "AMB_pre_existing_definition",
+        "issue": "Missing definitions for Pre-Existing Condition and statutory waiting period",
+        "description": "The clause refers to a Pre-Existing Condition as defined under applicable regulations "
+                       "and a statutory waiting period, but neither term is defined in the policy.",
+    })
+    rb = rb.model_copy(update={"ambiguities": [reworded]})
+    history = [ClaimFact(name="patient_medical_history",
+                         value={"pre_existing_history": "Hypertension for 2 years"}, source=_SRC)]
+    routine = [ClaimFact(name="claim_form_summary", value={"note": "policy waiting period served"}, source=_SRC)]
+    assert _amb_statuses(rb, history) == {"AMB_pre_existing_definition": "needs_review"}
+    assert _amb_statuses(rb, routine) == {}

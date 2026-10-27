@@ -50,11 +50,13 @@ The longer prompts add about 700 input tokens. Output length varies run to run, 
 
 ## Found while testing (not fixed here)
 
-- **Ambiguity matched too broadly (rule engine).** `_evaluate_ambiguity` treats a claim fact as relevant if it
-  shares any word longer than 3 letters with the ambiguity text. Words such as "policy" (in
-  `policy_inception_date`) and "existing" (in the field name `pre_existing_history`) match, so a routine claim
-  like packet_05 (dengue, no prior history) gets `AMB_PRE_EXISTING_CONDITIONS: needs_review`. This was hidden in
-  mock mode because the ground-truth facts are minimal.
+- **Ambiguity relevance depended on the word "policy" (rule engine), fixed on this branch.** An earlier note here
+  said packet_05 was flagged; that was wrong (it only happened when the ambiguity ID was requested directly). The
+  real problem: the engine linked a claim fact to the Section 4.1 ambiguity by any shared word, and packet_12 only
+  matched through the generic word "policy". A routine claim mentioning "policy" was flagged, and a real
+  pre-existing case worded without that word was missed. The engine now matches on subject words only, ignores
+  empty fields, and reads field names such as `pre_existing_history`. Findings for all 20 packets and 20 scenarios
+  are unchanged; tests cover both failure cases and the live compiler's wording.
 - **Proportional deduction applied unconditionally (rule engine).** The engine applies the 5000/rate ratio
   whenever room rent exceeds the cap, without checking `formula_basis`. Correct for this policy, wrong for a
   policy without that clause.
