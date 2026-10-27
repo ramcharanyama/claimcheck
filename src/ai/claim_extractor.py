@@ -28,7 +28,12 @@ ALLOWED_FACTS = (
     "room_rent_billing",
     "surgical_expenses",
     "non_payable_items_breakdown",
+    "professional_fees_billing",
+    "operation_theatre_billing",
+    "patient_medical_history",
 )
+
+ALLOWED_CAUSES = ("illness", "accidental_injury")
 
 
 class ClaimExtractorError(Exception):
@@ -61,7 +66,10 @@ FACT_SCHEMA = """Use exactly these fact names and value shapes:
 - submitted_documents: list of document types included in the claim, e.g. ["claim_form", "hospital_bill", "discharge_summary"]
 - hospitalization_details: {"policy_inception_date": "YYYY-MM-DD" or null, "admission_date": "YYYY-MM-DD" or null, "cause": "illness" or "accidental_injury", "diagnosis": text}
 - room_rent_billing: {"room_type": snake_case text, "daily_rate": number, "days": integer or null, "total_amount": number or null}
-- surgical_expenses: {"procedure": snake_case text, "eye": "left", "right" or null, "surgeon_fee": number, "ot_charges": number, "lens_cost": number, "total_cataract_billed": number}
+- surgical_expenses: ONLY for cataract surgery. {"procedure": "cataract_surgery", "eye": "left", "right" or null, "surgeon_fee": number, "ot_charges": number, "lens_cost": number, "total_cataract_billed": number}
+- professional_fees_billing: doctor fees for any other treatment. {"surgeon_fee": number or null, "anesthetist_fee": number or null, "consultant_fee": number or null (physician or consultant), "total_amount": number or null}
+- operation_theatre_billing: operation theatre charges for any other treatment. {"ot_charges": number, "total_amount": number or null}
+- patient_medical_history: prior conditions mentioned in the documents. {"diagnosis": snake_case text, "pre_existing_history": text as stated, "hospitalization_cause": text, "claimed_amount": number or null}
 - non_payable_items_breakdown: list of {"item": snake_case name, "amount": number}
 Omit a fact entirely if the documents do not mention it. Use null for any value that is not stated.
 Write amounts as plain numbers in INR without commas or currency symbols."""
@@ -106,9 +114,19 @@ def _normalize_value(name: str, value):
     """Deterministic post-processing: recompute derived numbers instead of trusting the model."""
     if name == "hospitalization_details" and isinstance(value, dict):
         value = dict(value)
+        cause = value.get("cause")
+        if isinstance(cause, str) and cause.strip().lower() not in ALLOWED_CAUSES:
+            # Keep what the model read, but never let free text pose as a cause category.
+            value["reported_cause"] = cause
+            value["cause"] = None
         inception = _parse_date(value.get("policy_inception_date"))
         admission = _parse_date(value.get("admission_date"))
         value["days_elapsed"] = (admission - inception).days if inception and admission else None
+    if name in ("professional_fees_billing", "operation_theatre_billing") and isinstance(value, dict):
+        value = dict(value)
+        parts = [v for k, v in value.items() if k != "total_amount" and isinstance(v, (int, float))]
+        if value.get("total_amount") is None and parts:
+            value["total_amount"] = float(sum(parts))
     return value
 
 
@@ -164,6 +182,14 @@ def extract_claim_facts(
         if name not in ALLOWED_FACTS:
             result.rejected.append(f"fact #{index}: unknown fact name {name!r}")
             continue
+        if name == "surgical_expenses":
+            value = raw.get("value") if isinstance(raw.get("value"), dict) else {}
+            if "cataract" not in str(value.get("procedure", "")).lower():
+                result.rejected.append(
+                    f"fact #{index}: surgical_expenses is only for cataract surgery "
+                    f"(got procedure {value.get('procedure')!r})"
+                )
+                continue
         if result.fact(name) is not None:
             result.rejected.append(f"fact #{index}: duplicate fact {name}")
             continue

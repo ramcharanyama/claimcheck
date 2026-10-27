@@ -1,0 +1,100 @@
+{
+  "packet": "packet_11",
+  "error": null,
+  "documents": {
+    "claim_form.pdf": [
+      {
+        "page": 1,
+        "source_type": "pdf_text",
+        "needs_ocr": false,
+        "text": "HEALTH INSURANCE REIMBURSEMENT CLAIM FORM\nClaim Form (Form CF-101) | Aura Health Assure (Plan B)\nPatient: Deepak Chopra\nClaim No: CLM-2026-0011\nReimbursement claim for elective orthopedic knee arthroplasty.\nClaimCheck 2.0 Benchmark Document | Packet: packet_11 | Claim Ref: CLM-2026-0011 | Deterministic Test Suite\n"
+      }
+    ],
+    "discharge_summary.pdf": [
+      {
+        "page": 1,
+        "source_type": "pdf_text",
+        "needs_ocr": false,
+        "text": "ORTHO-CARE SPECIALTY HOSPITAL - DISCHARGE SUMMARY\nDischarge Summary | Aura Health Assure (Plan B)\nPatient: Deepak Chopra\nLOS: 2 Days\nTotal knee arthroplasty performed successfully. Postoperative rehabilitation initiated.\nClaimCheck 2.0 Benchmark Document | Packet: packet_11 | Claim Ref: CLM-2026-0011 | Deterministic Test Suite\n"
+      }
+    ],
+    "hospital_bill.pdf": [
+      {
+        "page": 1,
+        "source_type": "ocr",
+        "needs_ocr": false,
+        "text": "ORTHO-CARE SPECIALTY HOSPITAL - COMPREHENSIVE INVOICE\n\nHospital Bill (Rasterised Scan) | Aura Health Assure (Plan B)\n\nPatient: Deepak Chopra Bill No: OCSH-5520\nDeluxe Room Charges: 2 days @ INR 10000.00/day = Total INR 20000.00.\nProfessional Fees: Surgeon INR 12000, Anesthetist INR 5000, Physician INR 3000. Total INR 20000.00.\n\nOperation Theatre Charges: Major OT booking and consumables = Total INR 15000.00.\n"
+      }
+    ]
+  },
+  "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "facts": [
+    {
+      "name": "hospitalization_details",
+      "value": {
+        "policy_inception_date": null,
+        "admission_date": null,
+        "cause": "elective orthopedic knee arthroplasty",
+        "diagnosis": null,
+        "days_elapsed": null
+      },
+      "source": {
+        "document": "claim_form.pdf",
+        "page": 1,
+        "quote": "Reimbursement claim for elective orthopedic knee arthroplasty."
+      }
+    },
+    {
+      "name": "room_rent_billing",
+      "value": {
+        "room_type": "deluxe_room",
+        "daily_rate": 10000,
+        "days": 2,
+        "total_amount": 20000
+      },
+      "source": {
+        "document": "hospital_bill.pdf",
+        "page": 1,
+        "quote": "Deluxe Room Charges: 2 days @ INR 10000.00/day = Total INR 20000.00."
+      }
+    },
+    {
+      "name": "surgical_expenses",
+      "value": {
+        "procedure": "elective_orthopedic_knee_arthroplasty",
+        "eye": null,
+        "surgeon_fee": 12000,
+        "ot_charges": 15000,
+        "lens_cost": null,
+        "total_cataract_billed": null
+      },
+      "source": {
+        "document": "hospital_bill.pdf",
+        "page": 1,
+        "quote": "Professional Fees: Surgeon INR 12000, Anesthetist INR 5000, Physician INR 3000. Total INR 20000.00. Operation Theatre Charges: Major OT booking and consumables = Total INR 15000.00."
+      }
+    }
+  ],
+  "citation_checks": {
+    "hospitalization_details": {
+      "verified": true,
+      "cited_page": 1,
+      "found_on_page": 1,
+      "reason": "verified"
+    },
+    "room_rent_billing": {
+      "verified": true,
+      "cited_page": 1,
+      "found_on_page": 1,
+      "reason": "verified"
+    },
+    "surgical_expenses": {
+      "verified": true,
+      "cited_page": 1,
+      "found_on_page": 1,
+      "reason": "verified"
+    }
+  },
+  "needs_review": [],
+  "rejected": []
+}

@@ -167,3 +167,69 @@ def test_no_non_payable_hint_without_items(documents):
     client = FakeClient(json.dumps({"facts": GOOD_FACTS}))
     extract_claim_facts(documents, client=client, model="m")
     assert "non-payable:" not in client.calls[0]["messages"][1]["content"]
+
+
+FEES_QUOTE = "Professional Fees: Surgeon INR 12000, Anesthetist INR 5000, Physician INR 3000."
+OT_QUOTE = "Operation Theatre Charges: INR 15000.00."
+
+
+@pytest.fixture(scope="module")
+def ortho_docs():
+    bill = load_document(_pdf([
+        "ORTHO HOSPITAL - BILL",
+        "Deluxe Room Charges: 2 days @ INR 10000.00/day = Total INR 20000.00.",
+        FEES_QUOTE,
+        OT_QUOTE,
+    ]), document_id="hospital_bill.pdf", ocr_fallback=False)
+    return [bill]
+
+
+def _src(quote):
+    return {"document": "hospital_bill.pdf", "page": 1, "quote": quote}
+
+
+def test_professional_fees_and_ot_are_extracted(ortho_docs):
+    facts = [
+        {"name": "professional_fees_billing",
+         "value": {"surgeon_fee": 12000, "anesthetist_fee": 5000, "consultant_fee": 3000, "total_amount": None},
+         "source": _src(FEES_QUOTE)},
+        {"name": "operation_theatre_billing", "value": {"ot_charges": 15000}, "source": _src(OT_QUOTE)},
+    ]
+    result, _ = _run(ortho_docs, facts)
+    assert result.rejected == []
+    assert result.fact("professional_fees_billing").value["total_amount"] == 20000.0
+    assert result.fact("operation_theatre_billing").value["total_amount"] == 15000.0
+    assert result.verified_count == 2
+
+
+def test_stated_total_is_not_overwritten(ortho_docs):
+    facts = [{"name": "professional_fees_billing",
+              "value": {"surgeon_fee": 12000, "anesthetist_fee": 5000, "total_amount": 20000},
+              "source": _src(FEES_QUOTE)}]
+    result, _ = _run(ortho_docs, facts)
+    assert result.fact("professional_fees_billing").value["total_amount"] == 20000
+
+
+def test_non_cataract_surgery_is_not_forced_into_surgical_expenses(ortho_docs):
+    facts = [{"name": "surgical_expenses",
+              "value": {"procedure": "knee_arthroplasty", "surgeon_fee": 12000, "ot_charges": 15000},
+              "source": _src(FEES_QUOTE)}]
+    result, _ = _run(ortho_docs, facts)
+    assert result.fact("surgical_expenses") is None
+    assert any("only for cataract" in m for m in result.rejected)
+
+
+def test_free_text_cause_is_not_treated_as_a_category(documents):
+    facts = copy.deepcopy(GOOD_FACTS)
+    facts[1]["value"]["cause"] = "elective orthopedic knee arthroplasty"
+    result, _ = _run(documents, facts)
+    value = result.fact("hospitalization_details").value
+    assert value["cause"] is None
+    assert value["reported_cause"] == "elective orthopedic knee arthroplasty"
+
+
+def test_prompt_lists_new_fact_types(documents):
+    _, client = _run(documents, GOOD_FACTS)
+    prompt = client.calls[0]["messages"][1]["content"]
+    for name in ("professional_fees_billing", "operation_theatre_billing", "patient_medical_history"):
+        assert name in prompt

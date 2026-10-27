@@ -57,6 +57,26 @@ class AnalysisResult(BaseModel):
     timings: Dict[str, float] = Field(default_factory=dict)
     tokens: Dict[str, int] = Field(default_factory=dict)
     investigation_result: Optional[Any] = None
+    approved_rule_ids: List[str] = Field(default_factory=list)
+
+
+def compile_policy(policy_pdf_bytes: bytes):
+    """Live mode step 1: compile policy rules with Nemotron for a person to review.
+
+    Returns the CompilationResult (rules, ambiguities and citation checks). Nothing
+    is applied to a claim until rules are approved and passed to analyze().
+    """
+    from src.ai.policy_compiler import compile_policy_rules
+    from src.documents.policy_document import load_document
+
+    policy_doc = load_document(io.BytesIO(policy_pdf_bytes))
+    return compile_policy_rules(policy_doc, policy_id="synthetic_policy")
+
+
+def approvable_rule_ids(compilation) -> List[str]:
+    """Rules a person may approve: only those whose quote was verified on the cited page."""
+    return [r.rule_id for r in compilation.rules
+            if compilation.citation_checks.get(r.rule_id) and compilation.citation_checks[r.rule_id].verified]
 
 
 def render_page_with_highlight(
@@ -217,6 +237,8 @@ def analyze(
     claim_pdfs: Dict[str, bytes],
     mode: str = "mock",
     packet_id: Optional[str] = None,
+    compilation: Optional[Any] = None,
+    approved_rule_ids: Optional[List[str]] = None,
 ) -> AnalysisResult:
     """Analyze a claim submission against an insurance policy.
 
@@ -225,6 +247,11 @@ def analyze(
         claim_pdfs: Mapping of document names to file bytes (e.g. bills, claim forms).
         mode: Adjudication mode - 'mock' (offline ground truth) or 'live' (Nebius models).
         packet_id: Optional explicit sample packet ID to load in mock mode.
+        compilation: Live mode only. A CompilationResult from compile_policy() that a person
+            has reviewed. If omitted, the policy is compiled inside this call.
+        approved_rule_ids: Live mode only. Rule IDs a person approved. A compiled rule is
+            applied only if it is approved AND its citation was verified; every other rule
+            stays draft and the engine reports it as needs_review.
 
     Returns:
         AnalysisResult: Structured adjudication result with verified citations and calculation steps.
@@ -352,25 +379,35 @@ def analyze(
             return result
 
         try:
-            from src.ai.policy_compiler import compile_policy_rules
             from src.ai.claim_extractor import extract_claim_facts
             from src.ai.claim_loader import load_claim_document
-            from src.documents.policy_document import load_document
 
-            # Compile policy
+            # Compile policy (or reuse the compilation a person reviewed)
             t_comp = time.time()
-            policy_doc = load_document(io.BytesIO(policy_pdf_bytes))
-            comp_res = compile_policy_rules(policy_doc, policy_id="synthetic_policy")
-            rulebook = comp_res.to_rulebook()
+            comp_res = compilation if compilation is not None else compile_policy(policy_pdf_bytes)
+            rulebook = comp_res.to_rulebook().model_copy(deep=True)
 
             result.rulebook = rulebook
             result.policy_id = rulebook.policy_id
+            result.ambiguities = list(rulebook.ambiguities)
+            approved = set(approved_rule_ids or [])
             for r in rulebook.rules:
                 chk = comp_res.citation_checks.get(r.rule_id)
                 verified = chk.verified if chk else False
                 result.rule_validation_status[r.rule_id] = verified
-                if not verified:
-                    r.validation_status = ValidationStatus.DRAFT
+                if verified and r.rule_id in approved:
+                    # Human approval: a person reviewed this verified rule and approved it.
+                    # Plain string values: the engine compares the status as text.
+                    r.validation_status = ValidationStatus.VALIDATED.value
+                    r.human_review_required = False
+                    result.approved_rule_ids.append(r.rule_id)
+                else:
+                    r.validation_status = ValidationStatus.DRAFT.value
+            if not result.approved_rule_ids:
+                result.unresolved_items.append(
+                    "No compiled rules have been approved yet. Review the compiled rules and approve "
+                    "them before findings can be decided; until then every rule is reported as needs_review."
+                )
 
             result.timings["compiler_sec"] = time.time() - t_comp
 
@@ -381,7 +418,14 @@ def analyze(
                 cdoc = load_claim_document(cbytes, document_id=name)
                 claim_doc_list.append(cdoc)
 
-            extract_res = extract_claim_facts(claim_doc_list)
+            # Tell the extractor which bill lines this policy excludes, taken from the
+            # compiled rulebook, so non-payable charges are matched in live mode.
+            non_payable_items = next(
+                (r.parameters.get("excluded_items") for r in rulebook.rules
+                 if str(getattr(r.rule_type, "value", r.rule_type)) == "non_payable_items"),
+                None,
+            )
+            extract_res = extract_claim_facts(claim_doc_list, non_payable_items=non_payable_items or None)
             result.extracted_facts = extract_res.facts
             result.timings["extractor_sec"] = time.time() - t_ext
 

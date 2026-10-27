@@ -1,0 +1,55 @@
+{
+  "packet": "packet_02",
+  "error": null,
+  "documents": {
+    "claim_form.pdf": [
+      {
+        "page": 1,
+        "source_type": "pdf_text",
+        "needs_ocr": false,
+        "text": "HEALTH INSURANCE REIMBURSEMENT CLAIM FORM\nClaim Form (Form CF-101) | Aura Health Assure (Plan B)\nPatient: Priya Patel\nClaim No: CLM-2026-0002\nPolicy No: POL-AURA-2026-001\nAttached documents: Claim Form and Hospital Inpatient Bill. Note: Discharge summary is currently awaited\nfrom medical records department.\nClaimant requests expedited preliminary scrutiny while medical records prepares official discharge docket.\nClaimCheck 2.0 Benchmark Document | Packet: packet_02 | Claim Ref: CLM-2026-0002 | Deterministic Test Suite\n"
+      }
+    ],
+    "discharge_summary.pdf": [
+      {
+        "page": 1,
+        "source_type": "pdf_text",
+        "needs_ocr": false,
+        "text": "DOCUMENT NOTICE - DISCHARGE SUMMARY\nNotice of Missing Document | Aura Health Assure (Plan B)\nPatient: Priya Patel\nStatus: AWAITED\nNOTICE: The official Hospital Discharge Summary was not provided at the time of claim submission.\nHospital administration indicates records are undergoing clinical review prior to release.\nClaimCheck 2.0 Benchmark Document | Packet: packet_02 | Claim Ref: CLM-2026-0002 | Deterministic Test Suite\n"
+      }
+    ],
+    "hospital_bill.pdf": [
+      {
+        "page": 1,
+        "source_type": "pdf_text",
+        "needs_ocr": false,
+        "text": "CITY GENERAL HOSPITAL - INPATIENT TAX INVOICE\nHospital Bill (Inv #5512) | Aura Health Assure (Plan B)\nPatient: Priya Patel\nInvoice No: INV-5512\nTotal Billed: INR 34000.00\nOriginal final hospitalization invoice with complete payment acknowledgement.\nCharges include diagnostic panels and inpatient pharmacy consumables.\nClaimCheck 2.0 Benchmark Document | Packet: packet_02 | Claim Ref: CLM-2026-0002 | Deterministic Test Suite\n"
+      }
+    ]
+  },
+  "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "facts": [
+    {
+      "name": "submitted_documents",
+      "value": [
+        "claim_form",
+        "hospital_bill"
+      ],
+      "source": {
+        "document": "claim_form.pdf",
+        "page": 1,
+        "quote": "Attached documents: Claim Form and Hospital Inpatient Bill. Note: Discharge summary is currently awaited from medical records department."
+      }
+    }
+  ],
+  "citation_checks": {
+    "submitted_documents": {
+      "verified": true,
+      "cited_page": 1,
+      "found_on_page": 1,
+      "reason": "verified"
+    }
+  },
+  "needs_review": [],
+  "rejected": []
+}

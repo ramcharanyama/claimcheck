@@ -25,7 +25,7 @@ from src import settings
 from src.agent import investigator, tavily_client
 from src.ai.config_check import inspect_configuration
 from src.engine.rule_engine import evaluate
-from src.pipeline import AnalysisResult, analyze, render_page_with_highlight
+from src.pipeline import AnalysisResult, analyze, approvable_rule_ids, compile_policy, render_page_with_highlight
 from src.reports.report_generator import generate_markdown_report
 from src.schemas import ClaimFact, SourceRef
 
@@ -140,6 +140,63 @@ def render_models_in_use_box(cfg, is_mock: bool) -> None:
     st.markdown("\n".join(box_lines))
 
 
+def render_rule_approval() -> None:
+    """Live mode: let a person review Nemotron-compiled rules and approve them before use."""
+    compilation = st.session_state.get("compilation")
+    if compilation is None:
+        return
+
+    approvable = set(approvable_rule_ids(compilation))
+    approved = st.session_state.get("approved_rule_ids")
+
+    st.subheader("Review compiled policy rules")
+    st.caption(
+        f"NVIDIA Nemotron ({compilation.model}) compiled {len(compilation.rules)} rule(s) from the policy. "
+        "Each quote was checked word for word against the cited PDF page. Only rules with a verified quote "
+        "can be approved, and only approved rules are applied to claims."
+    )
+    if approved is None:
+        st.warning("Rules are not approved yet. Until you approve them, every finding is reported as Needs Review.")
+    else:
+        st.success(f"Approved {len(approved)} of {len(compilation.rules)} rule(s). Run the analysis to apply them.")
+
+    with st.form("rule_approval_form"):
+        selections: Dict[str, bool] = {}
+        for rule in compilation.rules:
+            check = compilation.citation_checks.get(rule.rule_id)
+            verified = rule.rule_id in approvable
+            rule_type = getattr(rule.rule_type, "value", rule.rule_type)
+            badge = (f"Quote verified on page {rule.source.page}" if verified
+                     else f"Quote not found on cited page {rule.source.page} ({check.reason if check else 'unchecked'})")
+            with st.expander(f"{rule.rule_id} ({rule_type}) - {badge}", expanded=not verified):
+                st.write(rule.description)
+                st.markdown("**Parameters**")
+                st.json(rule.parameters, expanded=True)
+                if rule.exceptions:
+                    st.markdown("**Exceptions:** " + "; ".join(rule.exceptions))
+                st.markdown(f"**Policy quote (page {rule.source.page}):**")
+                st.markdown(f"> {rule.source.quote}")
+                default = verified if approved is None else rule.rule_id in approved
+                selections[rule.rule_id] = st.checkbox(
+                    "Approve this rule" if verified else "Cannot approve: quote not verified",
+                    value=default and verified,
+                    disabled=not verified,
+                    key=f"approve_{rule.rule_id}",
+                )
+
+        ambiguities = getattr(compilation, "ambiguities", [])
+        if ambiguities:
+            st.markdown("**Ambiguous clauses (always sent to human review, never applied automatically)**")
+            for amb in ambiguities:
+                st.info(f"{amb.ambiguity_id} ({amb.section}, page {amb.source.page}): {amb.issue}. {amb.description}")
+
+        if st.form_submit_button("Approve selected rules", type="primary"):
+            st.session_state.approved_rule_ids = [rid for rid, ok in selections.items() if ok and rid in approvable]
+            st.rerun()
+
+    st.markdown("---")
+
+
 def main() -> None:
     st.title("ClaimCheck 2.0")
     st.caption("Policy compiler and claim intelligence agent for health insurance reimbursement")
@@ -237,6 +294,22 @@ def main() -> None:
         st.markdown("---")
         render_models_in_use_box(cfg, is_mock=(pipeline_mode == "mock"))
 
+        if pipeline_mode == "live" and policy_bytes:
+            policy_key = hash(policy_bytes)
+            if st.session_state.get("compiled_policy_key") != policy_key:
+                st.session_state.compilation = None
+                st.session_state.approved_rule_ids = None
+            st.markdown("---")
+            st.caption("Live mode: 1) compile the policy rules, 2) review and approve them, 3) run the analysis.")
+            if st.button("1. Compile policy rules (Nemotron)", use_container_width=True):
+                with st.spinner("Compiling policy rules with NVIDIA Nemotron..."):
+                    try:
+                        st.session_state.compilation = compile_policy(policy_bytes)
+                        st.session_state.compiled_policy_key = policy_key
+                        st.session_state.approved_rule_ids = None
+                    except Exception as exc:
+                        st.error(f"Policy compilation failed: {type(exc).__name__}: {exc}")
+
         st.markdown("---")
         run_analysis = st.button("Run Adjudication Analysis", type="primary", use_container_width=True)
 
@@ -260,8 +333,13 @@ def main() -> None:
                     claim_pdfs=claim_files,
                     mode=pipeline_mode,
                     packet_id=chosen_pid,
+                    compilation=st.session_state.get("compilation") if pipeline_mode == "live" else None,
+                    approved_rule_ids=st.session_state.get("approved_rule_ids") if pipeline_mode == "live" else None,
                 )
                 st.session_state.result = res
+
+    if pipeline_mode == "live":
+        render_rule_approval()
 
     # Check if analysis results exist
     result: Optional[AnalysisResult] = st.session_state.result

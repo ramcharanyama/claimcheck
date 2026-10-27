@@ -1,0 +1,115 @@
+{
+  "packet": "packet_05",
+  "error": null,
+  "documents": {
+    "claim_form.pdf": [
+      {
+        "page": 1,
+        "source_type": "pdf_text",
+        "needs_ocr": false,
+        "text": "HEALTH INSURANCE REIMBURSEMENT CLAIM FORM\nClaim Form (Form CF-101) | Aura Health Assure (Plan B)\nPatient: Rohan Verma\nClaim No: CLM-2026-0005\nClaim submitted for medical management of dengue fever without complications.\nClaimCheck 2.0 Benchmark Document | Packet: packet_05 | Claim Ref: CLM-2026-0005 | Deterministic Test Suite\n"
+      }
+    ],
+    "discharge_summary.pdf": [
+      {
+        "page": 1,
+        "source_type": "pdf_text",
+        "needs_ocr": false,
+        "text": "METRO HEALTHCARE HOSPITAL - DISCHARGE SUMMARY\nDischarge Summary | Aura Health Assure (Plan B)\nPatient: Rohan Verma\nStay: 3 Days\nOutcome: Recovered\nPatient treated for dengue fever with supportive IV hydration and monitoring.\nClaimCheck 2.0 Benchmark Document | Packet: packet_05 | Claim Ref: CLM-2026-0005 | Deterministic Test Suite\n"
+      }
+    ],
+    "hospital_bill.pdf": [
+      {
+        "page": 1,
+        "source_type": "pdf_text",
+        "needs_ocr": false,
+        "text": "METRO HEALTHCARE HOSPITAL - ITEMIZED BILL\nHospital Bill | Aura Health Assure (Plan B)\nPatient: Rohan Verma\nBill No: MHH-1044\nTotal: INR 26000.00\nRoom and Board (Twin Sharing): 3 days @ INR 4000.00/day = Total INR 12000.00.\nInvestigation, medication, and nursing charges totaling INR 14000.00. Paid in full.\nClaimCheck 2.0 Benchmark Document | Packet: packet_05 | Claim Ref: CLM-2026-0005 | Deterministic Test Suite\n"
+      }
+    ]
+  },
+  "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "facts": [
+    {
+      "name": "submitted_documents",
+      "value": [
+        "claim_form"
+      ],
+      "source": {
+        "document": "claim_form.pdf",
+        "page": 1,
+        "quote": "Claim Form (Form CF-101)"
+      }
+    },
+    {
+      "name": "hospitalization_details",
+      "value": {
+        "policy_inception_date": null,
+        "admission_date": null,
+        "cause": "illness",
+        "diagnosis": "dengue fever",
+        "days_elapsed": null
+      },
+      "source": {
+        "document": "claim_form.pdf",
+        "page": 1,
+        "quote": "Claim submitted for medical management of dengue fever without complications."
+      }
+    },
+    {
+      "name": "room_rent_billing",
+      "value": {
+        "room_type": "twin_sharing",
+        "daily_rate": 4000,
+        "days": 3,
+        "total_amount": 12000
+      },
+      "source": {
+        "document": "hospital_bill.pdf",
+        "page": 1,
+        "quote": "Room and Board (Twin Sharing): 3 days @ INR 4000.00/day = Total INR 12000.00."
+      }
+    },
+    {
+      "name": "patient_medical_history",
+      "value": {
+        "diagnosis": "dengue_fever",
+        "pre_existing_history": null,
+        "hospitalization_cause": "dengue fever",
+        "claimed_amount": null
+      },
+      "source": {
+        "document": "discharge_summary.pdf",
+        "page": 1,
+        "quote": "Patient treated for dengue fever with supportive IV hydration and monitoring."
+      }
+    }
+  ],
+  "citation_checks": {
+    "submitted_documents": {
+      "verified": true,
+      "cited_page": 1,
+      "found_on_page": 1,
+      "reason": "verified"
+    },
+    "hospitalization_details": {
+      "verified": true,
+      "cited_page": 1,
+      "found_on_page": 1,
+      "reason": "verified"
+    },
+    "room_rent_billing": {
+      "verified": true,
+      "cited_page": 1,
+      "found_on_page": 1,
+      "reason": "verified"
+    },
+    "patient_medical_history": {
+      "verified": true,
+      "cited_page": 1,
+      "found_on_page": 1,
+      "reason": "verified"
+    }
+  },
+  "needs_review": [],
+  "rejected": []
+}

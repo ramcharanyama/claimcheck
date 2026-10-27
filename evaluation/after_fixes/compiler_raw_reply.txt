@@ -1,0 +1,212 @@
+===== CALL 1 | model=nvidia/nemotron-3-super-120b-a12b | max_tokens=8192 | finish_reason=stop =====
+----- reasoning_content -----
+We need to extract rules of given types: required_documents, waiting_period, room_rent_cap, sub_limit, non_payable_items.
+
+From pages:
+
+Page 1: Required docs: Claim Form, Hospital Bill, Discharge Summary. Minimum count? It says must include all three. So minimum_document_count = 3.
+
+Waiting period: Page 2: Initial waiting period: 30 days from policy inception date. Applies to: hospitalization or medical expenses incurred for treatment of illness during first 30 days, except accident exemption. So applies_to could be "illness" maybe "illness_treatment". But we need category the waiting period covers. Could use "illness". Reference_date: policy inception date.
+
+Room rent cap: Page 2: max eligible room and boarding expense covered by insurer is INR 5000 per day. Cap = 5000. daily_limit_inr also 5000. currency INR. unit per_day. excess_payable_by: insured person. formula_basis: they say: If actual daily room rent exceeds INR 5000, then professional fees and operation theatre charges are payable only in the ratio 5000 / actual daily rate, with remaining balance non-payable. Also note: Proportional Deduction Application: applies strictly to associated professional fees (surgeon, anesthetist, medical practitioner fees) and operation theatre charges. Other hospital charges such as medicines, diagnostic tests, consumables are not subject to proportional deduction.
+
+Thus affected_categories: ["professional_fees","operation_theatre_charges"] maybe lower case snake_case: professional_fees, operation_theatre_charges. Or perhaps "professional_fees" and "operation_theatre_charges". We'll keep those.
+
+Formula basis expressed as expression using policy's own numbers and actual_daily_rate: "5000 / actual_daily_rate". Provide as string? They said write as expression using policy's own numbers and actual_daily_rate. Probably just "5000 / actual_daily_rate". No quotes inside JSON? Should be string value.
+
+Now sub_limit: Page 3: cataract surgery sub-limit INR 40000 per eye, inclusive of surgeon fees, operating room charges, intraocular lens costs. Category: cataract_surgery. max_limit_inr: 40000. currency INR. unit: per_eye? Actually "per eye". So unit: per_eye. inclusive_items: ["surgeon_fees","operating_room_charges","intraocular_lens_costs"].
+
+non_payable_items: Page 3: registration fees, admission processing charges, gloves, face masks, sanitizers, thermometer charges, luxury patient amenity kits. All lower snake_case: registration_fees, admission_processing_charges, gloves, face_masks, sanitizers, thermometer_charges, luxury_patient_amenity_kits.
+
+Now ambiguities: Need to find clauses affecting coverage but cannot be applied due to undefined term etc.
+
+Potential ambiguous: Section 4.1 mentions "Pre-Existing Condition, as defined under applicable regulations" – definition not provided. That's ambiguous. Also maybe "statutory waiting period" referenced but not defined. However we have waiting period defined elsewhere. But phrase "statutory waiting period" might refer to some external regulation not defined. So ambiguity.
+
+Also maybe "applicable regulations" again.
+
+Also maybe "Hospital" definition given later but seems defined. Not ambiguous.
+
+Let's capture two ambiguities: Pre-Existing Condition definition missing; statutory waiting period missing definition.
+
+But check if any other ambiguous like "proportional deduction applies strictly to associated professional fees ... Other hospital charges such as medicines, diagnostic tests, and consumables are not subject to proportional deduction." That's clear.
+
+So produce ambiguities list.
+
+Need to output JSON with rules array and ambiguities array.
+
+Each rule needs rule_id: "RULE_<SHORT_NAME>". Choose short names: required_docs, waiting_period, room_rent_cap, sub_limit_cataract, non_payable_items.
+
+Make sure description one sentence.
+
+Parameters as per type.
+
+Exceptions: list exceptions explicitly stated in text. For required_documents: any exceptions? Note says supplemental records may be requested but do not substitute. No exception to requirement. So empty list.
+
+Waiting period: exception: accidental injury sustained after policy inception date exempt from waiting period. So exceptions list: ["accidental_injury"] maybe phrase exactly: "hospitalization is necessitated solely by an accidental injury sustained after the policy inception date". We'll put that as string.
+
+Room rent cap: exceptions? None stated besides maybe if actual daily rent <= cap then no proportional deduction. Not an exception. So empty.
+
+Sub_limit: exceptions? None.
+
+Non_payable_items: exceptions? None.
+
+Now source: need page number and exact quote sentence(s). For each rule, pick the sentence that contains the rule.
+
+Required_documents: quote from page 1: "Every reimbursement claim submitted under this policy must include all three of the following documents: (1) a completed and signed Claim Form, (2) an itemized original Hospital Bill with receipt, and (3) the official Hospital Discharge Summary." That's the sentence.
+
+Waiting period: quote from page 2: "A mandatory waiting period of 30 days shall apply from the policy inception date." Might also include the exception sentence: "Any hospitalization or medical expenses incurred for treatment of illness during the first 30 days of coverage are strictly excluded from reimbursement, except where hospitalization is necessitated solely by an accidental injury sustained after the policy inception date." We'll combine maybe both sentences? The instruction: copy its quote from that page word for word. Could choose the first sentence plus the exception sentence? Better to include the whole paragraph? But they said "quote": "<exact sentence(s) copied from that page>" so can be multiple sentences if needed. We'll include the two sentences together as they appear.
+
+Room rent cap: quote from page 2: "The maximum eligible room and boarding expense covered by the insurer is INR 5000 per day of hospitalization. Any room rent charges incurred in excess of INR 5000 per day are non-payable by the insurer and shall be borne entirely by the insured person. If the actual daily room rent exceeds INR 5000, then professional fees and operation theatre charges are payable only in the ratio 5000 / actual daily rate, with the remaining balance of such charges being non-payable." Also include the next sentence about proportional deduction application? Might need to include that too for formula basis. We'll include the whole block up to "Other hospital charges such as medicines, diagnostic tests, and consumables are not subject to proportional deduction." That is also part of clause. Let's capture from start of Section 2.2 to end of that paragraph.
+
+Sub_limit: quote from page 3: "Reimbursement for cataract surgery shall be subject to a strict monetary sub-limit of INR 40000 per eye, inclusive of surgeon fees, operating room charges, and intraocular lens costs. Any expenses incurred for cataract surgery in excess of INR 40000 per eye are non-payable by the insurer." Also maybe include bilateral sentence but not needed.
+
+Non_payable_items: quote from page 3: "The following non-medical and administrative items are non-payable and strictly excluded from reimbursement: registration fees, admission processing charges, gloves, face masks, sanitizers, thermometer charges, and luxury patient amenity kits."
+
+Now ambiguities: need section number as written, e.g., Section 4.1. Provide description and issue.
+
+First ambiguity: Section 4.1: "Pre-Existing Condition, as defined under applicable regulations" – definition missing. Issue: missing definition of Pre-Existing Condition and applicable regulations.
+
+Quote: "Any medical condition, ailment, or injury that constitutes a Pre-Existing Condition, as defined under applicable regulations, shall be excluded from coverage until the expiration of the statutory waiting period."
+
+Second ambiguity: Section 4.1 also mentions "statutory waiting period" not defined. Could be same sentence. Might combine but we can make separate ambiguity for statutory waiting period.
+
+Issue: missing definition of statutory waiting period.
+
+Quote same sentence.
+
+Alternatively we could combine both missing definitions in one ambiguity. But they ask list every clause that affects coverage but cannot be applied from this document alone. The clause is the sentence; it's ambiguous due to missing definitions. Could list one ambiguity referencing both missing definitions. We'll produce one ambiguity with description referencing both missing definitions.
+
+But they want each ambiguity entry with section, description, issue, source. We'll create one ambiguity for Section 4.1.
+
+Description: "The clause refers to a Pre-Existing Condition as defined under applicable regulations and a statutory waiting period, but neither term is defined in the policy." Issue: "Missing definitions for Pre-Existing Condition and statutory waiting period."
+
+Source: page 4, quote the sentence.
+
+Now ensure JSON format correct.
+
+Let's craft.
+
+Rules array order doesn't matter.
+
+Make sure all strings are properly escaped.
+
+Now produce final answer.
+----- content -----
+
+
+{
+  "rules": [
+    {
+      "rule_id": "RULE_required_docs",
+      "rule_type": "required_documents",
+      "description": "Every reimbursement claim must include a completed and signed Claim Form, an itemized original Hospital Bill with receipt, and the official Hospital Discharge Summary.",
+      "parameters": {
+        "required_documents": [
+          "claim_form",
+          "hospital_bill",
+          "discharge_summary"
+        ],
+        "minimum_document_count": 3
+      },
+      "exceptions": [],
+      "source": {
+        "page": 1,
+        "quote": "Every reimbursement claim submitted under this policy must include all three of the following documents: (1) a completed and signed Claim Form, (2) an itemized original Hospital Bill with receipt, and (3) the official Hospital Discharge Summary."
+      }
+    },
+    {
+      "rule_id": "RULE_waiting_period",
+      "rule_type": "waiting_period",
+      "description": "A mandatory waiting period of 30 days applies from the policy inception date, during which illness-related hospitalization expenses are excluded except for accidental injuries.",
+      "parameters": {
+        "duration_days": 30,
+        "applies_to": "illness",
+        "reference_date": "policy_inception_date"
+      },
+      "exceptions": [
+        "hospitalization is necessitated solely by an accidental injury sustained after the policy inception date"
+      ],
+      "source": {
+        "page": 2,
+        "quote": "A mandatory waiting period of 30 days shall apply from the policy inception date. Any hospitalization or medical expenses incurred for treatment of illness during the first 30 days of coverage are strictly excluded from reimbursement, except where hospitalization is necessitated solely by an accidental injury sustained after the policy inception date."
+      }
+    },
+    {
+      "rule_id": "RULE_room_rent_cap",
+      "rule_type": "room_rent_cap",
+      "description": "The insurer covers room rent up to INR 5000 per day; excess room rent is borne by the insured, and professional fees and operation theatre charges are payable only in the ratio 5000/actual daily rate when room rent exceeds the limit.",
+      "parameters": {
+        "cap": 5000,
+        "daily_limit_inr": 5000,
+        "currency": "INR",
+        "unit": "per_day",
+        "excess_payable_by": "insured_person",
+        "formula_basis": "5000 / actual_daily_rate",
+        "affected_categories": [
+          "professional_fees",
+          "operation_theatre_charges"
+        ]
+      },
+      "exceptions": [],
+      "source": {
+        "page": 2,
+        "quote": "The maximum eligible room and boarding expense covered by the insurer is INR 5000 per day of hospitalization. Any room rent charges incurred in excess of INR 5000 per day are non-payable by the insurer and shall be borne entirely by the insured person. If the actual daily room rent exceeds INR 5000, then professional fees and operation theatre charges are payable only in the ratio 5000 / actual daily rate, with the remaining balance of such charges being non-payable. Proportional Deduction Application: The proportional deduction applies strictly to associated professional fees (such as surgeon, anesthetist, and medical practitioner fees) and operation theatre charges. Other hospital charges such as medicines, diagnostic tests, and consumables are not subject to proportional deduction."
+      }
+    },
+    {
+      "rule_id": "RULE_sub_limit_cataract",
+      "rule_type": "sub_limit",
+      "description": "Reimbursement for cataract surgery is limited to INR 40000 per eye, inclusive of surgeon fees, operating room charges, and intraocular lens costs.",
+      "parameters": {
+        "category": "cataract_surgery",
+        "max_limit_inr": 40000,
+        "currency": "INR",
+        "unit": "per_eye",
+        "inclusive_items": [
+          "surgeon_fees",
+          "operating_room_charges",
+          "intraocular_lens_costs"
+        ]
+      },
+      "exceptions": [],
+      "source": {
+        "page": 3,
+        "quote": "Reimbursement for cataract surgery shall be subject to a strict monetary sub-limit of INR 40000 per eye, inclusive of surgeon fees, operating room charges, and intraocular lens costs. Any expenses incurred for cataract surgery in excess of INR 40000 per eye are non-payable by the insurer."
+      }
+    },
+    {
+      "rule_id": "RULE_non_payable_items",
+      "rule_type": "non_payable_items",
+      "description": "Specific non-medical and administrative items are excluded from reimbursement.",
+      "parameters": {
+        "excluded_items": [
+          "registration_fees",
+          "admission_processing_charges",
+          "gloves",
+          "face_masks",
+          "sanitizers",
+          "thermometer_charges",
+          "luxury_patient_amenity_kits"
+        ]
+      },
+      "exceptions": [],
+      "source": {
+        "page": 3,
+        "quote": "The following non-medical and administrative items are non-payable and strictly excluded from reimbursement: registration fees, admission processing charges, gloves, face masks, sanitizers, thermometer charges, and luxury patient amenity kits."
+      }
+    }
+  ],
+  "ambiguities": [
+    {
+      "ambiguity_id": "AMB_pre_existing_definition",
+      "section": "Section 4.1",
+      "description": "The clause refers to a Pre-Existing Condition as defined under applicable regulations and a statutory waiting period, but neither term is defined in the policy.",
+      "issue": "Missing definitions for Pre-Existing Condition and statutory waiting period",
+      "source": {
+        "page": 4,
+        "quote": "Any medical condition, ailment, or injury that constitutes a Pre-Existing Condition, as defined under applicable regulations, shall be excluded from coverage until the expiration of the statutory waiting period."
+      }
+    }
+  ]
+}
+

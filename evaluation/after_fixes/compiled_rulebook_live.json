@@ -1,0 +1,166 @@
+{
+  "policy_id": "POL-AURA-2026-001",
+  "ambiguities": [
+    {
+      "ambiguity_id": "AMB_pre_existing_definition",
+      "section": "Section 4.1",
+      "description": "The clause refers to a Pre-Existing Condition as defined under applicable regulations and a statutory waiting period, but neither term is defined in the policy.",
+      "issue": "Missing definitions for Pre-Existing Condition and statutory waiting period",
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 4,
+        "quote": "Any medical condition, ailment, or injury that constitutes a Pre-Existing Condition, as defined under applicable regulations, shall be excluded from coverage until the expiration of the statutory waiting period."
+      }
+    }
+  ],
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "rules": [
+    {
+      "rule_id": "RULE_required_docs",
+      "rule_type": "required_documents",
+      "description": "Every reimbursement claim must include a completed and signed Claim Form, an itemized original Hospital Bill with receipt, and the official Hospital Discharge Summary.",
+      "parameters": {
+        "required_documents": [
+          "claim_form",
+          "hospital_bill",
+          "discharge_summary"
+        ],
+        "minimum_document_count": 3
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 1,
+        "quote": "Every reimbursement claim submitted under this policy must include all three of the following documents: (1) a completed and signed Claim Form, (2) an itemized original Hospital Bill with receipt, and (3) the official Hospital Discharge Summary."
+      },
+      "validation_status": "draft",
+      "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_waiting_period",
+      "rule_type": "waiting_period",
+      "description": "A mandatory waiting period of 30 days applies from the policy inception date, during which illness-related hospitalization expenses are excluded except for accidental injuries.",
+      "parameters": {
+        "duration_days": 30,
+        "applies_to": "illness",
+        "reference_date": "policy_inception_date"
+      },
+      "exceptions": [
+        "hospitalization is necessitated solely by an accidental injury sustained after the policy inception date"
+      ],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 2,
+        "quote": "A mandatory waiting period of 30 days shall apply from the policy inception date. Any hospitalization or medical expenses incurred for treatment of illness during the first 30 days of coverage are strictly excluded from reimbursement, except where hospitalization is necessitated solely by an accidental injury sustained after the policy inception date."
+      },
+      "validation_status": "draft",
+      "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_room_rent_cap",
+      "rule_type": "room_rent_cap",
+      "description": "The insurer covers room rent up to INR 5000 per day; excess room rent is borne by the insured, and professional fees and operation theatre charges are payable only in the ratio 5000/actual daily rate when room rent exceeds the limit.",
+      "parameters": {
+        "cap": 5000,
+        "daily_limit_inr": 5000,
+        "currency": "INR",
+        "unit": "per_day",
+        "excess_payable_by": "insured_person",
+        "formula_basis": "5000 / actual_daily_rate",
+        "affected_categories": [
+          "professional_fees",
+          "operation_theatre_charges"
+        ]
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 2,
+        "quote": "The maximum eligible room and boarding expense covered by the insurer is INR 5000 per day of hospitalization. Any room rent charges incurred in excess of INR 5000 per day are non-payable by the insurer and shall be borne entirely by the insured person. If the actual daily room rent exceeds INR 5000, then professional fees and operation theatre charges are payable only in the ratio 5000 / actual daily rate, with the remaining balance of such charges being non-payable. Proportional Deduction Application: The proportional deduction applies strictly to associated professional fees (such as surgeon, anesthetist, and medical practitioner fees) and operation theatre charges. Other hospital charges such as medicines, diagnostic tests, and consumables are not subject to proportional deduction."
+      },
+      "validation_status": "draft",
+      "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_sub_limit_cataract",
+      "rule_type": "sub_limit",
+      "description": "Reimbursement for cataract surgery is limited to INR 40000 per eye, inclusive of surgeon fees, operating room charges, and intraocular lens costs.",
+      "parameters": {
+        "category": "cataract_surgery",
+        "max_limit_inr": 40000,
+        "currency": "INR",
+        "unit": "per_eye",
+        "inclusive_items": [
+          "surgeon_fees",
+          "operating_room_charges",
+          "intraocular_lens_costs"
+        ]
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 3,
+        "quote": "Reimbursement for cataract surgery shall be subject to a strict monetary sub-limit of INR 40000 per eye, inclusive of surgeon fees, operating room charges, and intraocular lens costs. Any expenses incurred for cataract surgery in excess of INR 40000 per eye are non-payable by the insurer."
+      },
+      "validation_status": "draft",
+      "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_non_payable_items",
+      "rule_type": "non_payable_items",
+      "description": "Specific non-medical and administrative items are excluded from reimbursement.",
+      "parameters": {
+        "excluded_items": [
+          "registration_fees",
+          "admission_processing_charges",
+          "gloves",
+          "face_masks",
+          "sanitizers",
+          "thermometer_charges",
+          "luxury_patient_amenity_kits"
+        ]
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 3,
+        "quote": "The following non-medical and administrative items are non-payable and strictly excluded from reimbursement: registration fees, admission processing charges, gloves, face masks, sanitizers, thermometer charges, and luxury patient amenity kits."
+      },
+      "validation_status": "draft",
+      "human_review_required": false
+    }
+  ],
+  "citation_checks": {
+    "RULE_required_docs": {
+      "verified": true,
+      "cited_page": 1,
+      "found_on_page": 1,
+      "reason": "verified"
+    },
+    "RULE_waiting_period": {
+      "verified": true,
+      "cited_page": 2,
+      "found_on_page": 2,
+      "reason": "verified"
+    },
+    "RULE_room_rent_cap": {
+      "verified": true,
+      "cited_page": 2,
+      "found_on_page": 2,
+      "reason": "verified"
+    },
+    "RULE_sub_limit_cataract": {
+      "verified": true,
+      "cited_page": 3,
+      "found_on_page": 3,
+      "reason": "verified"
+    },
+    "RULE_non_payable_items": {
+      "verified": true,
+      "cited_page": 3,
+      "found_on_page": 3,
+      "reason": "verified"
+    }
+  },
+  "rejected": []
+}

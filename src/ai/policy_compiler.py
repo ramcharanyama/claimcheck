@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, ValidationError
 from src.ai.nebius_client import chat_json, get_client, get_model
 from src.documents.evidence import CitationCheck, check_citation
 from src.documents.pdf_extractor import DocumentExtraction
-from src.schemas import Rule, Rulebook, RuleType, ValidationStatus
+from src.schemas import Ambiguity, Rule, Rulebook, RuleType, ValidationStatus
 
 
 class PolicyCompilerError(Exception):
@@ -29,13 +29,15 @@ class CompilationResult(BaseModel):
     rules: List[Rule] = Field(default_factory=list)
     citation_checks: Dict[str, CitationCheck] = Field(default_factory=dict)
     rejected: List[str] = Field(default_factory=list)
+    ambiguities: List[Ambiguity] = Field(default_factory=list)
+    ambiguity_checks: Dict[str, CitationCheck] = Field(default_factory=dict)
 
     @property
     def verified_count(self) -> int:
         return sum(c.verified for c in self.citation_checks.values())
 
     def to_rulebook(self) -> Rulebook:
-        return Rulebook(policy_id=self.policy_id, rules=self.rules)
+        return Rulebook(policy_id=self.policy_id, rules=self.rules, ambiguities=self.ambiguities)
 
 
 SYSTEM_PROMPT = (
@@ -48,7 +50,8 @@ SYSTEM_PROMPT = (
 PARAMETER_SCHEMA = """Use exactly these parameter keys for each rule type. Take every value from the policy text:
 - required_documents: {"required_documents": [document names], "minimum_document_count": integer}
 - waiting_period: {"duration_days": integer, "applies_to": category the waiting period covers, "reference_date": the date it counts from}
-- room_rent_cap: {"daily_limit_inr": number, "currency": "INR", "unit": "per_day", "excess_payable_by": who pays any excess}
+- room_rent_cap: {"cap": number, "daily_limit_inr": same number as cap, "currency": "INR", "unit": "per_day", "excess_payable_by": who pays any excess, "formula_basis": the payable ratio for other charges written as an expression using the policy's own numbers and actual_daily_rate for the billed daily room rate, or null if the policy states no such ratio, "affected_categories": [charge categories that ratio applies to] or []}
+  For room_rent_cap, quote the whole clause, including any sentence about a ratio or proportional deduction.
 - sub_limit: {"category": procedure name, "max_limit_inr": number, "currency": "INR", "unit": what the limit is counted per, "inclusive_items": [items the limit covers]}
 - non_payable_items: {"excluded_items": [item names]}
 Write every name and list item in lowercase snake_case, for example "face_masks", "discharge_summary", "policy_inception_date"."""
@@ -66,9 +69,20 @@ Return JSON in exactly this shape:
   "parameters": {{<explicit values from the text, e.g. "duration_days": 30>}},
   "exceptions": ["<exceptions explicitly stated in the text>"],
   "source": {{"page": <page number>, "quote": "<exact sentence(s) copied from that page>"}}
+}}],
+ "ambiguities": [{{
+  "ambiguity_id": "AMB_<SHORT_NAME>",
+  "section": "<section number as written, e.g. Section 9.9>",
+  "description": "<what is unclear and why>",
+  "issue": "<the missing definition or reference, in a few words>",
+  "source": {{"page": <page number>, "quote": "<exact sentence(s) copied from that page>"}}
 }}]}}
 
 {parameter_schema}
+
+Ambiguities: list every clause that affects coverage but cannot be applied from this document alone, for
+example because it relies on a term, regulation, period or amount the policy refers to but never defines.
+Do not turn such a clause into a rule. Use an empty list if there are none.
 
 Policy text, page by page:
 {pages}"""
@@ -137,4 +151,39 @@ def compile_policy_rules(
         result.rules.append(rule.model_copy(update={"human_review_required": not check.verified}))
         result.citation_checks[rule.rule_id] = check
 
+    raw_ambiguities = data.get("ambiguities") or []
+    if not isinstance(raw_ambiguities, list):
+        result.rejected.append("'ambiguities' is not a list")
+        raw_ambiguities = []
+    for index, raw in enumerate(raw_ambiguities, start=1):
+        amb = _build_ambiguity(raw, extraction.document_id, result, index)
+        if amb is None:
+            continue
+        if any(a.ambiguity_id == amb.ambiguity_id for a in result.ambiguities):
+            result.rejected.append(f"ambiguity #{index}: duplicate ambiguity_id {amb.ambiguity_id}")
+            continue
+        result.ambiguities.append(amb)
+        result.ambiguity_checks[amb.ambiguity_id] = check_citation(extraction, amb.source)
+
     return result
+
+
+def _build_ambiguity(raw, document_id: str, result: CompilationResult, index: int):
+    """Validate one ambiguity. Ambiguities only ever lead to needs_review, so an
+    unverified quote is kept (and reported in ambiguity_checks) rather than dropped."""
+    if not isinstance(raw, dict):
+        result.rejected.append(f"ambiguity #{index}: not a JSON object")
+        return None
+    src = raw.get("source") if isinstance(raw.get("source"), dict) else {}
+    try:
+        return Ambiguity.model_validate({
+            "ambiguity_id": raw.get("ambiguity_id"),
+            "section": raw.get("section"),
+            "description": raw.get("description"),
+            "issue": raw.get("issue"),
+            "source": {"document": document_id, "page": src.get("page"), "quote": src.get("quote")},
+        })
+    except ValidationError as exc:
+        err = exc.errors()[0]
+        result.rejected.append(f"ambiguity #{index} ({raw.get('ambiguity_id')}): {err['loc']} {err['msg']}")
+        return None
