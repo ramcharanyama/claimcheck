@@ -1,0 +1,225 @@
+[
+  {
+    "name": "preauthorization_request",
+    "value": {
+      "hospitalization_type": "emergency",
+      "documents_present": [
+        "preauthorization_form",
+        "cost_estimate",
+        "scan_report",
+        "lab_report"
+      ],
+      "request_datetime": "2026-01-22T09:00",
+      "admission_datetime": "2026-01-21T22:30"
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Request submitted to insurer on: 22-Jan-2026 09:00."
+    }
+  },
+  {
+    "name": "hospitalization_details",
+    "value": {
+      "policy_inception_date": "2026-01-01",
+      "admission_date": "2026-01-21",
+      "days_elapsed": 20,
+      "cause": "accidental_injury",
+      "diagnosis": "closed fracture of left femur"
+    },
+    "source": {
+      "document": "doctor_referral_letter.pdf",
+      "page": 1,
+      "quote": "Diagnosis: Closed fracture of left femur after a road traffic accident on 21-Jan-2026. Cause: accidental injury."
+    }
+  },
+  {
+    "name": "room_rent_billing",
+    "value": {
+      "room_type": "general_ward",
+      "daily_rate": 4500.0,
+      "days": 5,
+      "total_amount": 22500.0
+    },
+    "source": {
+      "document": "cost_estimate.pdf",
+      "page": 1,
+      "quote": "General ward: 5 days @ INR 4500.00/day = INR 22500.00."
+    }
+  },
+  {
+    "name": "professional_fees_billing",
+    "value": {
+      "surgeon_fee": 35000.0,
+      "anesthetist_fee": 9000.0,
+      "total_amount": 44000.0
+    },
+    "source": {
+      "document": "cost_estimate.pdf",
+      "page": 1,
+      "quote": "Professional fees: Orthopaedic surgeon INR 35000, Anaesthetist INR 9000. Total INR 44000.00."
+    }
+  },
+  {
+    "name": "operation_theatre_billing",
+    "value": {
+      "ot_charges": 28000.0,
+      "total_amount": 28000.0
+    },
+    "source": {
+      "document": "cost_estimate.pdf",
+      "page": 1,
+      "quote": "Operation theatre charges: INR 28000.00."
+    }
+  },
+  {
+    "name": "non_payable_items_breakdown",
+    "value": [
+      {
+        "item": "registration_fees",
+        "amount": 500.0
+      },
+      {
+        "item": "thermometer_charges",
+        "amount": 300.0
+      }
+    ],
+    "source": {
+      "document": "cost_estimate.pdf",
+      "page": 1,
+      "quote": "Registration fees: INR 500.00. Thermometer charges: INR 300.00."
+    }
+  },
+  {
+    "name": "ambulance_charges",
+    "value": {
+      "amount": 2500.0
+    },
+    "source": {
+      "document": "ambulance_bill.pdf",
+      "page": 1,
+      "quote": "Road ambulance from accident site to Highway Trauma Hospital on 21-Jan-2026: INR 2500.00."
+    }
+  },
+  {
+    "name": "claim_amount_summary",
+    "value": {
+      "total_claimed": 151800.0,
+      "previously_paid_this_year": 380000.0
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Claims already paid under this policy this year: INR 380000.00."
+    }
+  },
+  {
+    "name": "declared_conditions",
+    "value": {
+      "conditions": []
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Existing medical conditions declared by the insured: None."
+    }
+  },
+  {
+    "name": "document_details",
+    "value": [
+      {
+        "document": "preauthorisation_form.pdf",
+        "page": 1,
+        "quote": "Patient: Vikram Singh | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0129",
+        "patient_name": "Vikram Singh",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "preauthorization_form",
+        "admission_date": "2026-01-21"
+      },
+      {
+        "document": "cost_estimate.pdf",
+        "page": 1,
+        "quote": "Patient: Vikram Singh | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0129",
+        "patient_name": "Vikram Singh",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "cost_estimate",
+        "stated_total": 151800,
+        "line_items": [
+          {
+            "item": "General ward",
+            "amount": 22500
+          },
+          {
+            "item": "Orthopaedic surgeon fee",
+            "amount": 35000
+          },
+          {
+            "item": "Anaesthetist fee",
+            "amount": 9000
+          },
+          {
+            "item": "Operation theatre charges",
+            "amount": 28000
+          },
+          {
+            "item": "Implant (plate and screws)",
+            "amount": 42000
+          },
+          {
+            "item": "Pharmacy and consumables",
+            "amount": 12000
+          },
+          {
+            "item": "Registration fees",
+            "amount": 500
+          },
+          {
+            "item": "Thermometer charges",
+            "amount": 300
+          },
+          {
+            "item": "Ambulance from accident site",
+            "amount": 2500
+          }
+        ]
+      },
+      {
+        "document": "doctor_referral_letter.pdf",
+        "page": 1,
+        "quote": "Patient: Vikram Singh | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0129",
+        "patient_name": "Vikram Singh",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "other"
+      },
+      {
+        "document": "xray_report.pdf",
+        "page": 1,
+        "quote": "Patient: Vikram Singh | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0129",
+        "patient_name": "Vikram Singh",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "scan_report"
+      },
+      {
+        "document": "lab_report.pdf",
+        "page": 1,
+        "quote": "Patient: Vikram Singh | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0129",
+        "patient_name": "Vikram Singh",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "lab_report"
+      },
+      {
+        "document": "ambulance_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Vikram Singh | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0129",
+        "patient_name": "Vikram Singh",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "other"
+      }
+    ],
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Patient: Vikram Singh | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0129"
+    }
+  }
+]

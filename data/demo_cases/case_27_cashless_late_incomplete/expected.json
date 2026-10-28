@@ -1,0 +1,20 @@
+{
+  "case_id": "case_27_cashless_late_incomplete",
+  "label": "Cashless - late request without cost estimate",
+  "claim_type": "cashless",
+  "story": "A planned hernia operation where the pre-authorisation was sent 17 hours before admission and the doctor's cost estimate is missing.",
+  "expected_rules": {
+    "RULE_CASHLESS_PREAUTH": [
+      "violated",
+      null
+    ],
+    "RULE_ROOM_RENT_CAP": [
+      "satisfied",
+      0.0
+    ]
+  },
+  "expected_checks": {},
+  "expected_verdict": "incomplete",
+  "expected_payable": 60000.0,
+  "scanned_documents": []
+}

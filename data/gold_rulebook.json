@@ -114,6 +114,113 @@
       },
       "validation_status": "validated",
       "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_PRE_HOSPITALIZATION",
+      "rule_type": "pre_hospitalization",
+      "description": "Medical expenses for the same illness or injury in the 30 days before admission are payable; earlier expenses are non-payable.",
+      "parameters": {
+        "window_days": 30,
+        "reference_date": "admission_date"
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 5,
+        "quote": "Section 5.1 (Pre-Hospitalisation Expenses): Medical expenses incurred during the 30 days immediately before the date of admission, for the same illness or injury for which the hospitalisation claim is admissible, are payable. Pre-hospitalisation expenses incurred more than 30 days before the date of admission are non-payable."
+      },
+      "validation_status": "validated",
+      "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_POST_HOSPITALIZATION",
+      "rule_type": "post_hospitalization",
+      "description": "Medical expenses for the same illness or injury in the 60 days after discharge are payable; later expenses are non-payable.",
+      "parameters": {
+        "window_days": 60,
+        "reference_date": "discharge_date"
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 5,
+        "quote": "Section 5.2 (Post-Hospitalisation Expenses): Medical expenses incurred during the 60 days immediately after the date of discharge, for the same illness or injury for which the hospitalisation claim is admissible, are payable. Post-hospitalisation expenses incurred more than 60 days after the date of discharge are non-payable."
+      },
+      "validation_status": "validated",
+      "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_AMBULANCE_LIMIT",
+      "rule_type": "ambulance_limit",
+      "description": "Road ambulance charges are payable up to INR 2000 per hospitalisation.",
+      "parameters": {
+        "max_limit_inr": 2000.0,
+        "currency": "INR",
+        "unit": "per_hospitalisation"
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 5,
+        "quote": "Section 5.3 (Ambulance Charges): Road ambulance charges for transfer to the hospital are payable up to a maximum of INR 2000 per hospitalisation. Any ambulance charges in excess of INR 2000 per hospitalisation are non-payable."
+      },
+      "validation_status": "validated",
+      "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_SUM_INSURED",
+      "rule_type": "sum_insured",
+      "description": "Total payable for all claims in a policy year cannot exceed the Sum Insured of INR 500000.",
+      "parameters": {
+        "sum_insured_inr": 500000.0,
+        "currency": "INR",
+        "unit": "per_policy_year"
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 5,
+        "quote": "Section 5.4 (Sum Insured): The total amount payable for all claims in a policy year shall not exceed the Sum Insured of INR 500000. Any amount claimed in excess of the Sum Insured is non-payable."
+      },
+      "validation_status": "validated",
+      "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_CASHLESS_PREAUTH",
+      "rule_type": "cashless_preauthorization",
+      "description": "Cashless treatment needs a Pre-Authorisation Form and the doctor's Cost Estimate, sent 72 hours before a planned admission or within 24 hours of an emergency admission.",
+      "parameters": {
+        "required_documents": [
+          "preauthorization_form",
+          "cost_estimate"
+        ],
+        "planned_notice_hours_before": 72,
+        "emergency_notice_hours_after": 24
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 5,
+        "quote": "Section 5.5 (Cashless Pre-Authorisation): Cashless treatment at a network hospital requires a pre-authorisation request containing both of the following documents: (1) a completed Pre-Authorisation Form and (2) the treating doctor's Cost Estimate. For planned hospitalisation the request must reach the insurer at least 72 hours before admission. For emergency hospitalisation the request must reach the insurer within 24 hours of admission."
+      },
+      "validation_status": "validated",
+      "human_review_required": false
+    },
+    {
+      "rule_id": "RULE_PRE_EXISTING_DISCLOSURE",
+      "rule_type": "pre_existing_disclosure",
+      "description": "Every existing medical condition must be declared; undeclared conditions found in medical records are referred for medical review.",
+      "parameters": {
+        "action_if_undeclared": "medical_review"
+      },
+      "exceptions": [],
+      "source": {
+        "document": "synthetic_policy.pdf",
+        "page": 5,
+        "quote": "Section 5.6 (Disclosure of Existing Conditions): The insured person must declare every existing medical condition in the claim form or pre-authorisation form. Any medical condition found in the medical records that was not declared shall be referred for medical review before the claim is settled."
+      },
+      "validation_status": "validated",
+      "human_review_required": false
     }
   ],
   "ambiguities": [

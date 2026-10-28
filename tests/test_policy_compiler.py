@@ -62,8 +62,8 @@ def _compile(policy, rules=None, content=None):
 
 def test_correct_output_is_fully_verified(policy, gold):
     result, client = _compile(policy, _gold_as_model_output(gold))
-    assert len(result.rules) == 5
-    assert result.verified_count == 5
+    assert len(result.rules) == len(gold.rules)
+    assert result.verified_count == len(gold.rules)
     assert result.rejected == []
     assert all(r.validation_status == "draft" for r in result.rules)
     assert not any(r.human_review_required for r in result.rules)
@@ -79,7 +79,7 @@ def test_invented_quote_is_flagged_for_review(policy, gold):
     first = result.rules[0]
     assert first.human_review_required is True
     assert result.citation_checks[first.rule_id].reason == "not_found"
-    assert result.verified_count == 4
+    assert result.verified_count == len(gold.rules) - 1
 
 
 def test_wrong_page_is_flagged_for_review(policy, gold):
@@ -94,7 +94,7 @@ def test_invalid_rule_type_is_rejected_not_crashing(policy, gold):
     rules = _gold_as_model_output(gold)
     rules[1]["rule_type"] = "free_money"
     result, _ = _compile(policy, rules)
-    assert len(result.rules) == 4
+    assert len(result.rules) == len(gold.rules) - 1
     assert len(result.rejected) == 1
 
 
@@ -102,7 +102,7 @@ def test_duplicate_rule_id_is_rejected(policy, gold):
     rules = _gold_as_model_output(gold)
     rules.append(dict(rules[0]))
     result, _ = _compile(policy, rules)
-    assert len(result.rules) == 5
+    assert len(result.rules) == len(gold.rules)
     assert any("duplicate" in msg for msg in result.rejected)
 
 
@@ -110,7 +110,7 @@ def test_think_block_and_code_fence_are_ignored(policy, gold):
     payload = json.dumps({"rules": _gold_as_model_output(gold)})
     content = f"<think>Let me read the policy {{carefully}}.</think>\n```json\n{payload}\n```"
     result, _ = _compile(policy, content=content)
-    assert len(result.rules) == 5
+    assert len(result.rules) == len(gold.rules)
 
 
 def test_missing_rules_key_raises(policy):
@@ -127,7 +127,7 @@ def test_result_converts_to_rulebook(policy, gold):
     result, _ = _compile(policy, _gold_as_model_output(gold))
     rulebook = result.to_rulebook()
     assert rulebook.policy_id == "POL-TEST"
-    assert len(rulebook.rules) == 5
+    assert len(rulebook.rules) == len(gold.rules)
 
 
 def test_missing_api_key_gives_clear_error(monkeypatch):
@@ -240,3 +240,30 @@ def test_compiled_ambiguity_reaches_the_engine(policy, gold, gold_text):
         (ROOT / "data" / "packets" / "packet_12" / "ground_truth_facts.json").read_text(encoding="utf-8"))]
     findings = {f.rule_id: str(getattr(f.status, "value", f.status)) for f in evaluate(result.to_rulebook(), facts)}
     assert findings["AMB_PRE_EXISTING_CONDITIONS"] == "needs_review"
+
+
+def test_missing_comma_and_trailing_comma_are_repaired():
+    from src.ai.nebius_client import parse_json_response
+    broken = '{"facts": [\n  {"name": "a", "value": 1}\n  {"name": "b", "value": [1, 2,]}\n],\n}'
+    assert parse_json_response(broken) == {"facts": [{"name": "a", "value": 1}, {"name": "b", "value": [1, 2]}]}
+
+
+def test_valid_json_is_never_rewritten():
+    from src.ai.nebius_client import parse_json_response
+    text = '{"quote": "Total: INR 1,500.00,\\n then", "x": [1]}'
+    import json as _json
+    assert parse_json_response(text) == _json.loads(text)
+
+
+def test_unrepairable_reply_is_asked_again_once():
+    from src.ai.nebius_client import chat_json
+    client = SequenceClient([('{"a": 1 "b": 2 "c"}', "stop"), ('{"ok": true}', "stop")])
+    assert chat_json(client, "m", "sys", "user") == {"ok": True}
+    assert len(client.calls) == 2 and client.calls[1]["temperature"] == 0.0
+
+
+def test_twice_invalid_reply_raises():
+    from src.ai.nebius_client import chat_json
+    client = SequenceClient([('{"a": 1 "b"}', "stop"), ('{"a": 1 "b"}', "stop")])
+    with pytest.raises(NebiusResponseError):
+        chat_json(client, "m", "sys", "user")

@@ -40,6 +40,7 @@ from src.documents.ocr import is_tesseract_available
 ROOT_DIR = Path(__file__).resolve().parent.parent
 GOLD_RULEBOOK_PATH = ROOT_DIR / "data" / "gold_rulebook.json"
 PACKETS_DIR = ROOT_DIR / "data" / "packets"
+DEMO_CASES_DIR = PACKETS_DIR.parent / "demo_cases"
 
 
 class AnalysisResult(BaseModel):
@@ -58,6 +59,186 @@ class AnalysisResult(BaseModel):
     tokens: Dict[str, int] = Field(default_factory=dict)
     investigation_result: Optional[Any] = None
     approved_rule_ids: List[str] = Field(default_factory=list)
+    claim_type: str = "reimbursement"  # "reimbursement" or "cashless"
+    document_checks: List[Finding] = Field(default_factory=list)
+    not_applicable_rule_ids: List[str] = Field(default_factory=list)
+    payout: Dict[str, Any] = Field(default_factory=dict)
+    policy_number: Optional[str] = None
+
+
+# Which facts make a rule type relevant to a claim. A rule whose facts are all absent is
+# "not applicable" (nothing to check), which is different from "unable to verify".
+RULE_TRIGGER_FACTS: Dict[str, Tuple[str, ...]] = {
+    "required_documents": ("submitted_documents",),
+    "waiting_period": ("hospitalization_details",),
+    "room_rent_cap": ("room_rent_billing",),
+    "sub_limit": ("surgical_expenses",),
+    "non_payable_items": ("non_payable_items_breakdown", "hospital_breakdown"),
+    "pre_hospitalization": ("pre_hospitalization_expenses",),
+    "post_hospitalization": ("post_hospitalization_expenses",),
+    "ambulance_limit": ("ambulance_charges",),
+    "sum_insured": ("claim_amount_summary",),
+    "cashless_preauthorization": ("preauthorization_request",),
+    "pre_existing_disclosure": ("declared_conditions", "medical_conditions_found"),
+}
+
+# Rule types that do not apply to a claim type at all.
+EXCLUDED_RULE_TYPES = {
+    "reimbursement": {"cashless_preauthorization"},
+    "cashless": {"required_documents", "post_hospitalization"},
+}
+
+
+def _rule_type(rule) -> str:
+    return str(getattr(rule.rule_type, "value", rule.rule_type))
+
+
+def _status(finding) -> str:
+    return str(getattr(finding.status, "value", finding.status)).lower()
+
+
+def _policy_number_from_text(extraction) -> Optional[str]:
+    """Read the policy number printed in the policy schedule (deterministic, no AI)."""
+    if extraction is None:
+        return None
+    text = " ".join(p.text for p in extraction.pages[:2])
+    m = re.search(r"Policy\s*(?:Number|No\.?)\s*:?\s*([A-Z0-9][A-Z0-9\-/]{4,})", text, re.I)
+    return m.group(1) if m else None
+
+
+VERDICT_TEXT = {
+    "rejected": "Not payable",
+    "incomplete": "On hold - required documents or steps missing",
+    "fix_documents": "Fix the document mistakes before submitting",
+    "needs_review": "Needs a person to review some items",
+    "approved": "Payable",
+    "no_amount": "Rules checked - no claim amount found in the documents",
+}
+
+
+def compute_payout(rulebook, facts: List[ClaimFact], findings: List[Finding], claim_type: str,
+                   document_checks: Optional[List[Finding]] = None) -> Dict[str, Any]:
+    """Payout summary in plain terms.
+
+    - Starts from the amount claimed, but never more than the bills add up to.
+    - Subtracts policy deductions; the sum-insured cap is applied once, afterwards,
+      so nothing is counted twice.
+    - Gives one verdict: rejected (e.g. waiting period), incomplete (missing documents
+      or pre-authorisation problems), fix_documents (paperwork mistakes), needs_review,
+      or approved.
+    """
+    from src.engine.coverage_rules import _dec
+    from src.engine.document_checks import _BILL_TYPES
+
+    document_checks = document_checks or []
+    by_name = {f.name: f for f in facts}
+    summary = by_name.get("claim_amount_summary")
+    claimed = previous = None
+    if summary is not None and isinstance(summary.value, dict):
+        c = _dec(summary.value.get("total_claimed"))
+        claimed = float(c) if c is not None else None
+        previous = float(_dec(summary.value.get("previously_paid_this_year")) or 0)
+    previous = previous or 0.0
+
+    billed = None
+    details = by_name.get("document_details")
+    if details is not None and isinstance(details.value, list):
+        totals = [_dec(e.get("stated_total")) for e in details.value
+                  if isinstance(e, dict) and str(e.get("document_type", "")).lower() in _BILL_TYPES]
+        totals = [t for t in totals if t is not None]
+        billed = float(sum(totals)) if totals else None
+
+    types = {r.rule_id: _rule_type(r) for r in rulebook.rules} if rulebook else {}
+    deductions = []
+    for f in findings:
+        if _status(f) == "violated" and f.estimated_impact and types.get(f.rule_id) != "sum_insured":
+            deductions.append({"rule_id": f.rule_id, "amount": round(float(f.estimated_impact), 2),
+                               "reason": f.explanation})
+    total_deducted = round(sum(d["amount"] for d in deductions), 2)
+    sum_insured = next((float(r.parameters.get("sum_insured_inr")) for r in (rulebook.rules if rulebook else [])
+                        if _rule_type(r) == "sum_insured" and r.parameters.get("sum_insured_inr")), None)
+
+    base = claimed
+    reduced_to_billed = None
+    if claimed is not None and billed is not None and claimed > billed + 1:
+        reduced_to_billed = round(claimed - billed, 2)
+        base = billed
+
+    violated_types = {types.get(f.rule_id) for f in findings if _status(f) == "violated"}
+    if "waiting_period" in violated_types:
+        verdict = "rejected"
+    elif violated_types & {"required_documents", "cashless_preauthorization"}:
+        verdict = "incomplete"
+    elif any(_status(c) == "violated" for c in document_checks):
+        verdict = "fix_documents"
+    elif any(_status(f) == "needs_review" for f in findings) or any(_status(c) == "needs_review" for c in document_checks):
+        verdict = "needs_review"
+    else:
+        verdict = "approved" if base is not None else "no_amount"
+
+    payable = capped_by = None
+    if base is not None:
+        payable = 0.0 if verdict == "rejected" else max(round(base - total_deducted, 2), 0.0)
+        if sum_insured is not None and verdict != "rejected":
+            remaining = max(sum_insured - previous, 0.0)
+            if payable > remaining:
+                capped_by = round(payable - remaining, 2)
+                payable = round(remaining, 2)
+
+    return {
+        "claim_type": claim_type,
+        "claimed": claimed,
+        "billed": billed,
+        "reduced_to_billed": reduced_to_billed,
+        "deductions": deductions,
+        "total_deducted": total_deducted,
+        "sum_insured": sum_insured,
+        "capped_by_sum_insured": capped_by,
+        "payable": payable,
+        "verdict": verdict,
+        "verdict_text": VERDICT_TEXT[verdict],
+        "pending_review": [f.rule_id for f in findings if _status(f) == "needs_review"],
+        "is_estimate": claim_type == "cashless",
+    }
+
+
+def _adjudicate(result: "AnalysisResult", rulebook, facts: List[ClaimFact], claim_type: str,
+                policy_extraction) -> None:
+    """Shared final step for mock and live mode: rules, paperwork checks, applicability, payout."""
+    from src.engine.document_checks import run_document_checks
+
+    excluded = EXCLUDED_RULE_TYPES.get(claim_type, set())
+    types = {r.rule_id: _rule_type(r) for r in rulebook.rules}
+    present = {f.name for f in facts}
+    try:
+        # Evaluate everything once (this also decides which ambiguities relate to the claim),
+        # then drop rules that do not apply to this claim type.
+        findings = [f for f in evaluate(rulebook, facts) if types.get(f.rule_id) not in excluded]
+    except Exception as exc:
+        result.errors.append(f"Rule engine execution error: {exc}")
+        findings = []
+    result.findings = findings
+
+    result.not_applicable_rule_ids = [
+        f.rule_id for f in findings
+        if f.rule_id in types and _status(f) == "unable_to_verify"
+        and not any(name in present for name in RULE_TRIGGER_FACTS.get(types[f.rule_id], ()))
+    ]
+
+    result.policy_number = _policy_number_from_text(policy_extraction) or getattr(rulebook, "policy_id", None)
+    result.document_checks = run_document_checks(facts, result.policy_number)
+    result.payout = compute_payout(rulebook, facts, findings, claim_type, result.document_checks)
+
+    amb_ids = {a.ambiguity_id: a for a in getattr(rulebook, "ambiguities", [])}
+    for f in findings:
+        if f.rule_id in amb_ids:
+            result.unresolved_items.append(f"Policy Ambiguity [{f.rule_id}]: {amb_ids[f.rule_id].description}")
+        elif _status(f) == "needs_review" or (_status(f) == "unable_to_verify"
+                                             and f.rule_id not in result.not_applicable_rule_ids):
+            result.unresolved_items.append(f"Rule [{f.rule_id}]: {f.explanation}")
+    for c in result.document_checks:
+        if _status(c) in ("violated", "needs_review"):
+            result.unresolved_items.append(f"Document check [{c.rule_id}]: {c.explanation}")
 
 
 def compile_policy(policy_pdf_bytes: bytes):
@@ -239,6 +420,7 @@ def analyze(
     packet_id: Optional[str] = None,
     compilation: Optional[Any] = None,
     approved_rule_ids: Optional[List[str]] = None,
+    claim_type: str = "reimbursement",
 ) -> AnalysisResult:
     """Analyze a claim submission against an insurance policy.
 
@@ -252,12 +434,15 @@ def analyze(
         approved_rule_ids: Live mode only. Rule IDs a person approved. A compiled rule is
             applied only if it is approved AND its citation was verified; every other rule
             stays draft and the engine reports it as needs_review.
+        claim_type: "reimbursement" (after treatment, bills) or "cashless" (pre-authorisation with a
+            doctor's cost estimate). Decides which rules apply.
 
     Returns:
         AnalysisResult: Structured adjudication result with verified citations and calculation steps.
     """
     t_start = time.time()
-    result = AnalysisResult(mode=mode.upper())
+    claim_type = "cashless" if str(claim_type).lower().startswith("cash") else "reimbursement"
+    result = AnalysisResult(mode=mode.upper(), claim_type=claim_type)
     ocr_available = is_tesseract_available("eng")
 
     # 1. Basic validation of inputs
@@ -320,7 +505,7 @@ def analyze(
         # Determine packet ID and load ground truth facts
         t_extract_start = time.time()
         pid = packet_id or _detect_packet_id(claim_pdfs)
-        packet_dir = PACKETS_DIR / pid
+        packet_dir = PACKETS_DIR / pid if (PACKETS_DIR / pid).exists() else DEMO_CASES_DIR / pid
         facts_file = packet_dir / "ground_truth_facts.json"
 
         facts: List[ClaimFact] = []
@@ -337,25 +522,10 @@ def analyze(
         result.extracted_facts = facts
         result.timings["extractor_sec"] = time.time() - t_extract_start
 
-        # Run Deterministic Rule Engine
+        # Run Deterministic Rule Engine, paperwork checks and payout
         t_engine_start = time.time()
-        try:
-            findings = evaluate(rulebook, facts)
-            result.findings = findings
-        except Exception as exc:
-            result.errors.append(f"Rule engine execution error: {exc}")
-            findings = []
-
+        _adjudicate(result, rulebook, facts, claim_type, policy_extraction)
         result.timings["engine_sec"] = time.time() - t_engine_start
-
-        # Compile unresolved items
-        for amb in result.ambiguities:
-            result.unresolved_items.append(f"Policy Ambiguity [{amb.ambiguity_id}]: {amb.description}")
-
-        for fnd in findings:
-            s = str(getattr(fnd.status, "value", fnd.status)).lower()
-            if s in ("needs_review", "unable_to_verify"):
-                result.unresolved_items.append(f"Rule [{fnd.rule_id}]: {fnd.explanation}")
 
         result.tokens = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
         result.timings["total_sec"] = time.time() - t_start
@@ -425,22 +595,15 @@ def analyze(
                  if str(getattr(r.rule_type, "value", r.rule_type)) == "non_payable_items"),
                 None,
             )
-            extract_res = extract_claim_facts(claim_doc_list, non_payable_items=non_payable_items or None)
+            extract_res = extract_claim_facts(claim_doc_list, non_payable_items=non_payable_items or None,
+                                              claim_type=claim_type)
             result.extracted_facts = extract_res.facts
             result.timings["extractor_sec"] = time.time() - t_ext
 
             # Evaluate rules
             t_eng = time.time()
-            findings = evaluate(rulebook, extract_res.facts)
-            result.findings = findings
+            _adjudicate(result, rulebook, extract_res.facts, claim_type, policy_extraction)
             result.timings["engine_sec"] = time.time() - t_eng
-
-            for amb in getattr(rulebook, "ambiguities", []):
-                result.unresolved_items.append(f"Ambiguity [{amb.ambiguity_id}]: {amb.description}")
-            for fnd in findings:
-                s = str(getattr(fnd.status, "value", fnd.status)).lower()
-                if s in ("needs_review", "unable_to_verify"):
-                    result.unresolved_items.append(f"Rule [{fnd.rule_id}]: {fnd.explanation}")
 
             result.timings["total_sec"] = time.time() - t_start
             return result

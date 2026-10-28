@@ -233,3 +233,26 @@ def test_prompt_lists_new_fact_types(documents):
     prompt = client.calls[0]["messages"][1]["content"]
     for name in ("professional_fees_billing", "operation_theatre_billing", "patient_medical_history"):
         assert name in prompt
+
+
+def test_new_v3_facts_are_accepted_and_document_quotes_checked(ortho_docs):
+    facts = [
+        {"name": "document_details", "value": [
+            {"document": "hospital_bill.pdf", "document_type": "hospital_bill", "page": 1,
+             "quote": "ORTHO HOSPITAL - BILL", "patient_name": "Deepak", "stated_total": 55000, "line_items": []},
+            {"document": "hospital_bill.pdf", "document_type": "hospital_bill", "page": 1,
+             "quote": "A line that is not in the bill", "patient_name": "Deepak"}],
+         "source": _src("ORTHO HOSPITAL - BILL")},
+        {"name": "ambulance_charges", "value": {"amount": 2500}, "source": _src(OT_QUOTE)},
+        {"name": "medical_conditions_found", "value": [
+            {"condition": "Type 2 diabetes", "evidence": "Tab Metformin 500 mg", "inferred_from_medicine": True}],
+         "source": _src(FEES_QUOTE)},
+        {"name": "declared_conditions", "value": {"conditions": []}, "source": _src(FEES_QUOTE)},
+    ]
+    result, client = _run(ortho_docs, facts)
+    assert result.rejected == []
+    entries = result.fact("document_details").value
+    assert [e["quote_verified"] for e in entries] == [True, False]
+    prompt = client.calls[0]["messages"][1]["content"]
+    for name in ("document_details", "preauthorization_request", "medical_conditions_found", "declared_conditions"):
+        assert name in prompt

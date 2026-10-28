@@ -315,7 +315,7 @@ def test_live_mode_runs_end_to_end_with_fake_client(policy_bytes: bytes, monkeyp
     assert result.mode == "LIVE"
     assert result.errors == []
     assert len(fake.prompts) == 2
-    assert len(result.rulebook.rules) == 5
+    assert len(result.rulebook.rules) == 11
     assert all(result.rule_validation_status.values())
 
 

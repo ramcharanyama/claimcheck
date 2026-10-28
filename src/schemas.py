@@ -18,6 +18,12 @@ class RuleType(str, Enum):
     ROOM_RENT_CAP = "room_rent_cap"
     SUB_LIMIT = "sub_limit"
     NON_PAYABLE_ITEMS = "non_payable_items"
+    PRE_HOSPITALIZATION = "pre_hospitalization"
+    POST_HOSPITALIZATION = "post_hospitalization"
+    AMBULANCE_LIMIT = "ambulance_limit"
+    SUM_INSURED = "sum_insured"
+    CASHLESS_PREAUTHORIZATION = "cashless_preauthorization"
+    PRE_EXISTING_DISCLOSURE = "pre_existing_disclosure"
 
 
 class ValidationStatus(str, Enum):

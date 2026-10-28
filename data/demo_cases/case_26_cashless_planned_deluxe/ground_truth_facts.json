@@ -1,0 +1,164 @@
+[
+  {
+    "name": "preauthorization_request",
+    "value": {
+      "hospitalization_type": "planned",
+      "documents_present": [
+        "preauthorization_form",
+        "cost_estimate"
+      ],
+      "request_datetime": "2026-08-20T11:00",
+      "admission_datetime": "2026-08-25T08:00"
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Request submitted to insurer on: 20-Aug-2026 11:00."
+    }
+  },
+  {
+    "name": "hospitalization_details",
+    "value": {
+      "policy_inception_date": "2026-01-01",
+      "admission_date": "2026-08-25",
+      "days_elapsed": 236,
+      "cause": "illness",
+      "diagnosis": "symptomatic gallstones"
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Type of admission: Planned. Planned admission: 25-Aug-2026 08:00."
+    }
+  },
+  {
+    "name": "room_rent_billing",
+    "value": {
+      "room_type": "deluxe_room",
+      "daily_rate": 8000.0,
+      "days": 3,
+      "total_amount": 24000.0
+    },
+    "source": {
+      "document": "cost_estimate.pdf",
+      "page": 1,
+      "quote": "Deluxe room: 3 days @ INR 8000.00/day = INR 24000.00."
+    }
+  },
+  {
+    "name": "professional_fees_billing",
+    "value": {
+      "surgeon_fee": 45000.0,
+      "anesthetist_fee": 12000.0,
+      "total_amount": 57000.0
+    },
+    "source": {
+      "document": "cost_estimate.pdf",
+      "page": 1,
+      "quote": "Professional fees: Surgeon INR 45000, Anaesthetist INR 12000. Total INR 57000.00."
+    }
+  },
+  {
+    "name": "operation_theatre_billing",
+    "value": {
+      "ot_charges": 30000.0,
+      "total_amount": 30000.0
+    },
+    "source": {
+      "document": "cost_estimate.pdf",
+      "page": 1,
+      "quote": "Operation theatre charges: INR 30000.00."
+    }
+  },
+  {
+    "name": "non_payable_items_breakdown",
+    "value": [
+      {
+        "item": "registration_fees",
+        "amount": 1000.0
+      }
+    ],
+    "source": {
+      "document": "cost_estimate.pdf",
+      "page": 1,
+      "quote": "Registration fees: INR 1000.00."
+    }
+  },
+  {
+    "name": "claim_amount_summary",
+    "value": {
+      "total_claimed": 127000.0,
+      "previously_paid_this_year": 0.0
+    },
+    "source": {
+      "document": "cost_estimate.pdf",
+      "page": 1,
+      "quote": "Total estimated cost: INR 127000.00."
+    }
+  },
+  {
+    "name": "declared_conditions",
+    "value": {
+      "conditions": []
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Existing medical conditions declared by the insured: None."
+    }
+  },
+  {
+    "name": "document_details",
+    "value": [
+      {
+        "document": "preauthorisation_form.pdf",
+        "page": 1,
+        "quote": "Patient: Kavita Rao | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0826",
+        "patient_name": "Kavita Rao",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "preauthorization_form",
+        "admission_date": "2026-08-25"
+      },
+      {
+        "document": "cost_estimate.pdf",
+        "page": 1,
+        "quote": "Patient: Kavita Rao | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0826",
+        "patient_name": "Kavita Rao",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "cost_estimate",
+        "stated_total": 127000,
+        "line_items": [
+          {
+            "item": "Deluxe room",
+            "amount": 24000
+          },
+          {
+            "item": "Surgeon fee",
+            "amount": 45000
+          },
+          {
+            "item": "Anaesthetist fee",
+            "amount": 12000
+          },
+          {
+            "item": "Operation theatre charges",
+            "amount": 30000
+          },
+          {
+            "item": "Pharmacy and consumables",
+            "amount": 15000
+          },
+          {
+            "item": "Registration fees",
+            "amount": 1000
+          }
+        ]
+      }
+    ],
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Patient: Kavita Rao | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0826"
+    }
+  }
+]

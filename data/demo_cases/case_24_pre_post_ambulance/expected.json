@@ -1,0 +1,43 @@
+{
+  "case_id": "case_24_pre_post_ambulance",
+  "label": "Reimbursement - pre/post-hospitalisation and ambulance",
+  "claim_type": "reimbursement",
+  "story": "Appendix surgery with a CT scan 46 days before admission, physiotherapy 76 days after discharge, and an ambulance bill above the limit.",
+  "expected_rules": {
+    "RULE_REQ_DOCS": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_WAITING_PERIOD": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_ROOM_RENT_CAP": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_PRE_HOSPITALIZATION": [
+      "violated",
+      6500.0
+    ],
+    "RULE_POST_HOSPITALIZATION": [
+      "violated",
+      4000.0
+    ],
+    "RULE_AMBULANCE_LIMIT": [
+      "violated",
+      1500.0
+    ],
+    "RULE_SUM_INSURED": [
+      "satisfied",
+      0.0
+    ]
+  },
+  "expected_checks": {
+    "CHECK_BILL_ARITHMETIC": "satisfied",
+    "CHECK_CLAIMED_VS_BILLED": "satisfied"
+  },
+  "expected_verdict": "approved",
+  "expected_payable": 67700.0,
+  "scanned_documents": []
+}

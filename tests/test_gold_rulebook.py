@@ -72,7 +72,7 @@ def loaded_scenarios() -> list[ClaimScenario]:
 # Test 1: Synthetic PDF exists and can be parsed by existing extractor
 # -----------------------------------------------------------------------------
 def test_synthetic_pdf_exists_and_parseable(extracted_policy: DocumentExtraction):
-    assert extracted_policy.total_pages in (3, 4), f"Expected 3-4 pages, got {extracted_policy.total_pages}"
+    assert extracted_policy.total_pages == 5, f"Expected 5 pages, got {extracted_policy.total_pages}"
     assert len(extracted_policy.pages) == extracted_policy.total_pages
     for page in extracted_policy.pages:
         assert len(page.text.strip()) > 50, f"Page {page.page_number} has unexpectedly low text"
@@ -85,7 +85,7 @@ def test_synthetic_pdf_exists_and_parseable(extracted_policy: DocumentExtraction
 # -----------------------------------------------------------------------------
 def test_gold_rulebook_schema_validation(loaded_rulebook: Rulebook):
     assert loaded_rulebook.policy_id == "POL-AURA-2026-001"
-    assert len(loaded_rulebook.rules) == 5
+    assert len(loaded_rulebook.rules) == 11
     assert len(loaded_rulebook.ambiguities) == 1
     amb = loaded_rulebook.ambiguities[0]
     assert amb.ambiguity_id == "AMB_PRE_EXISTING_CONDITIONS"
@@ -98,13 +98,7 @@ def test_gold_rulebook_schema_validation(loaded_rulebook: Rulebook):
 # -----------------------------------------------------------------------------
 def test_all_five_rule_types_represented(loaded_rulebook: Rulebook):
     rule_types = {r.rule_type for r in loaded_rulebook.rules}
-    expected_types = {
-        RuleType.REQUIRED_DOCUMENTS.value,
-        RuleType.WAITING_PERIOD.value,
-        RuleType.ROOM_RENT_CAP.value,
-        RuleType.SUB_LIMIT.value,
-        RuleType.NON_PAYABLE_ITEMS.value,
-    }
+    expected_types = {t.value for t in RuleType}  # every rule type has a gold rule
     assert rule_types == expected_types, f"Rule types mismatch. Found: {rule_types}, Expected: {expected_types}"
 
 
@@ -405,7 +399,7 @@ def test_quotation_mismatch_fails_verification(extracted_policy: DocumentExtract
 # -----------------------------------------------------------------------------
 def test_citation_page_out_of_bounds_detected(extracted_policy: DocumentExtraction):
     total_pages = extracted_policy.total_pages
-    assert total_pages == 4
+    assert total_pages == 5
 
     invalid_pages = [0, total_pages + 1, -1, 99]
     valid_pages = {p.page_number for p in extracted_policy.pages}

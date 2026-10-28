@@ -37,7 +37,7 @@ def test_compiler_eval_mock_mode_run(tmp_path: Path):
     # Verify report metadata
     meta = report.metadata
     assert "git_commit_hash" in meta
-    assert meta["total_gold_rules"] == 5
+    assert meta["total_gold_rules"] == 11
     assert meta["total_compiled_rules"] >= 1
 
     # Verify metrics
@@ -51,7 +51,7 @@ def test_compiler_eval_mock_mode_run(tmp_path: Path):
     assert m["token_usage"]["total_tokens"] > 0
 
     # Verify per-rule diffs
-    assert len(report.per_rule_diffs) == 5
+    assert len(report.per_rule_diffs) == 11
     for diff in report.per_rule_diffs:
         assert "gold_rule_id" in diff
         assert "rule_type" in diff

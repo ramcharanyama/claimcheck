@@ -1,0 +1,208 @@
+[
+  {
+    "name": "submitted_documents",
+    "value": [
+      "claim_form",
+      "hospital_bill",
+      "discharge_summary"
+    ],
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Documents enclosed: Claim Form, Hospital Bill, Discharge Summary."
+    }
+  },
+  {
+    "name": "hospitalization_details",
+    "value": {
+      "policy_inception_date": "2026-01-01",
+      "admission_date": "2026-04-06",
+      "discharge_date": "2026-04-09",
+      "days_elapsed": 95,
+      "cause": "illness",
+      "diagnosis": "acute pyelonephritis"
+    },
+    "source": {
+      "document": "discharge_summary.pdf",
+      "page": 1,
+      "quote": "Diagnosis: Acute pyelonephritis (kidney infection). Cause: illness."
+    }
+  },
+  {
+    "name": "room_rent_billing",
+    "value": {
+      "room_type": "twin_sharing",
+      "daily_rate": 4000.0,
+      "days": 3,
+      "total_amount": 12000.0
+    },
+    "source": {
+      "document": "hospital_bill.pdf",
+      "page": 1,
+      "quote": "Room rent (Twin sharing): 3 days @ INR 4000.00/day = INR 12000.00."
+    }
+  },
+  {
+    "name": "pre_hospitalization_expenses",
+    "value": [
+      {
+        "description": "Urine culture and consultation",
+        "amount": 1500.0,
+        "date": "2026-03-28"
+      }
+    ],
+    "source": {
+      "document": "pre_hospitalisation_bill.pdf",
+      "page": 1,
+      "quote": "28-Mar-2026: Urine culture and consultation for fever and flank pain: INR 1500.00."
+    }
+  },
+  {
+    "name": "post_hospitalization_expenses",
+    "value": [
+      {
+        "description": "Follow-up consultation",
+        "amount": 800.0,
+        "date": "2026-04-20"
+      },
+      {
+        "description": "Antibiotics course completion",
+        "amount": 1200.0,
+        "date": "2026-04-20"
+      }
+    ],
+    "source": {
+      "document": "post_hospitalisation_bill.pdf",
+      "page": 1,
+      "quote": "20-Apr-2026: Follow-up consultation: INR 800.00."
+    }
+  },
+  {
+    "name": "claim_amount_summary",
+    "value": {
+      "total_claimed": 38200.0,
+      "previously_paid_this_year": 0.0
+    },
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Total amount claimed: INR 38,200.00."
+    }
+  },
+  {
+    "name": "declared_conditions",
+    "value": {
+      "conditions": []
+    },
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Existing medical conditions declared by the insured: None."
+    }
+  },
+  {
+    "name": "document_details",
+    "value": [
+      {
+        "document": "claim_form.pdf",
+        "page": 1,
+        "quote": "Patient: Anita Sharma | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0421",
+        "patient_name": "Anita Sharma",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "claim_form",
+        "admission_date": "2026-04-06",
+        "discharge_date": "2026-04-09"
+      },
+      {
+        "document": "hospital_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Anita Sharma | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0421",
+        "patient_name": "Anita Sharma",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "hospital_bill",
+        "admission_date": "2026-04-06",
+        "discharge_date": "2026-04-09",
+        "stated_total": 34700,
+        "line_items": [
+          {
+            "item": "Room rent (Twin sharing)",
+            "amount": 12000
+          },
+          {
+            "item": "Doctor consultation fees",
+            "amount": 6000
+          },
+          {
+            "item": "Pharmacy and medicines",
+            "amount": 9200
+          },
+          {
+            "item": "Laboratory investigations",
+            "amount": 4500
+          },
+          {
+            "item": "Nursing charges",
+            "amount": 3000
+          }
+        ]
+      },
+      {
+        "document": "discharge_summary.pdf",
+        "page": 1,
+        "quote": "Patient: Anita Sharma | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0421",
+        "patient_name": "Anita Sharma",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "discharge_summary",
+        "admission_date": "2026-04-06",
+        "discharge_date": "2026-04-09"
+      },
+      {
+        "document": "pre_hospitalisation_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Anita Sharma | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0421",
+        "patient_name": "Anita Sharma",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "pre_hospitalization_bill",
+        "stated_total": 1500,
+        "line_items": [
+          {
+            "item": "Urine culture and consultation",
+            "amount": 1500
+          }
+        ]
+      },
+      {
+        "document": "post_hospitalisation_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Anita Sharma | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0421",
+        "patient_name": "Anita Sharma",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "post_hospitalization_bill",
+        "stated_total": 2000,
+        "line_items": [
+          {
+            "item": "Follow-up consultation",
+            "amount": 800
+          },
+          {
+            "item": "Antibiotics course completion",
+            "amount": 1200
+          }
+        ]
+      },
+      {
+        "document": "prescription.pdf",
+        "page": 1,
+        "quote": "Patient: Anita Sharma | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0421",
+        "patient_name": "Anita Sharma",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "prescription"
+      }
+    ],
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Patient: Anita Sharma | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0421"
+    }
+  }
+]

@@ -1,0 +1,367 @@
+[
+  {
+    "name": "submitted_documents",
+    "value": [
+      "claim_form",
+      "hospital_bill",
+      "discharge_summary"
+    ],
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Documents enclosed: Claim Form, Hospital Bill, Discharge Summary, Pharmacy Bill, Prescription, Reports."
+    }
+  },
+  {
+    "name": "hospitalization_details",
+    "value": {
+      "policy_inception_date": "2026-01-01",
+      "admission_date": "2026-08-02",
+      "discharge_date": "2026-08-06",
+      "days_elapsed": 213,
+      "cause": "illness",
+      "diagnosis": "acute calculous cholecystitis"
+    },
+    "source": {
+      "document": "discharge_summary.pdf",
+      "page": 1,
+      "quote": "Diagnosis: Acute calculous cholecystitis, laparoscopic cholecystectomy performed. Cause: illness."
+    }
+  },
+  {
+    "name": "room_rent_billing",
+    "value": {
+      "room_type": "deluxe_room",
+      "daily_rate": 6250.0,
+      "days": 4,
+      "total_amount": 25000.0
+    },
+    "source": {
+      "document": "hospital_bill.pdf",
+      "page": 1,
+      "quote": "Room rent (Deluxe room): 4 days @ INR 6250.00/day = INR 25000.00."
+    }
+  },
+  {
+    "name": "professional_fees_billing",
+    "value": {
+      "surgeon_fee": 40000.0,
+      "anesthetist_fee": 10000.0,
+      "total_amount": 50000.0
+    },
+    "source": {
+      "document": "hospital_bill.pdf",
+      "page": 1,
+      "quote": "Professional fees: Surgeon INR 40000, Anaesthetist INR 10000. Total INR 50000.00."
+    }
+  },
+  {
+    "name": "operation_theatre_billing",
+    "value": {
+      "ot_charges": 25000.0,
+      "total_amount": 25000.0
+    },
+    "source": {
+      "document": "hospital_bill.pdf",
+      "page": 1,
+      "quote": "Operation theatre charges: INR 25000.00."
+    }
+  },
+  {
+    "name": "non_payable_items_breakdown",
+    "value": [
+      {
+        "item": "gloves",
+        "amount": 600.0
+      },
+      {
+        "item": "face_masks",
+        "amount": 400.0
+      }
+    ],
+    "source": {
+      "document": "pharmacy_bill.pdf",
+      "page": 1,
+      "quote": "Gloves (surgical, 2 boxes): INR 600.00."
+    }
+  },
+  {
+    "name": "pre_hospitalization_expenses",
+    "value": [
+      {
+        "description": "Surgeon consultation",
+        "amount": 800.0,
+        "date": "2026-07-27"
+      },
+      {
+        "description": "Ultrasound abdomen",
+        "amount": 2500.0,
+        "date": "2026-07-28"
+      }
+    ],
+    "source": {
+      "document": "pre_hospitalisation_bill.pdf",
+      "page": 1,
+      "quote": "28-Jul-2026: Ultrasound abdomen: INR 2500.00."
+    }
+  },
+  {
+    "name": "post_hospitalization_expenses",
+    "value": [
+      {
+        "description": "Follow-up consultation",
+        "amount": 900.0,
+        "date": "2026-08-20"
+      },
+      {
+        "description": "Wound dressing",
+        "amount": 600.0,
+        "date": "2026-08-20"
+      }
+    ],
+    "source": {
+      "document": "post_hospitalisation_bill.pdf",
+      "page": 1,
+      "quote": "20-Aug-2026: Follow-up consultation: INR 900.00."
+    }
+  },
+  {
+    "name": "ambulance_charges",
+    "value": {
+      "amount": 1500.0
+    },
+    "source": {
+      "document": "ambulance_bill.pdf",
+      "page": 1,
+      "quote": "Road ambulance from residence to St. Anne's Hospital on 02-Aug-2026: INR 1500.00."
+    }
+  },
+  {
+    "name": "claim_amount_summary",
+    "value": {
+      "total_claimed": 124600.0,
+      "previously_paid_this_year": 0.0
+    },
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Total amount claimed: INR 1,24,600.00."
+    }
+  },
+  {
+    "name": "declared_conditions",
+    "value": {
+      "conditions": [
+        "Hypertension"
+      ]
+    },
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Existing medical conditions declared by the insured: Hypertension."
+    }
+  },
+  {
+    "name": "medical_conditions_found",
+    "value": [
+      {
+        "condition": "Hypertension",
+        "evidence": "Hypertension for 3 years on Amlodipine",
+        "inferred_from_medicine": false,
+        "document": "discharge_summary.pdf"
+      },
+      {
+        "condition": "Hypothyroidism",
+        "evidence": "Tab Thyroxine 50 mcg long-term; TSH on treatment",
+        "inferred_from_medicine": true,
+        "document": "prescription.pdf"
+      }
+    ],
+    "source": {
+      "document": "prescription.pdf",
+      "page": 1,
+      "quote": "Continue long-term: Tab Amlodipine 5 mg once daily and Tab Thyroxine 50 mcg once daily before breakfast."
+    }
+  },
+  {
+    "name": "patient_medical_history",
+    "value": {
+      "diagnosis": "hypertension",
+      "pre_existing_history": "Hypertension for 3 years",
+      "hospitalization_cause": "acute calculous cholecystitis",
+      "claimed_amount": 124600.0
+    },
+    "source": {
+      "document": "discharge_summary.pdf",
+      "page": 1,
+      "quote": "Past medical history: Hypertension for 3 years on Amlodipine."
+    }
+  },
+  {
+    "name": "document_details",
+    "value": [
+      {
+        "document": "claim_form.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "claim_form",
+        "admission_date": "2026-08-02",
+        "discharge_date": "2026-08-06"
+      },
+      {
+        "document": "hospital_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "hospital_bill",
+        "admission_date": "2026-08-02",
+        "discharge_date": "2026-08-06",
+        "stated_total": 107500,
+        "line_items": [
+          {
+            "item": "Room rent (Deluxe room)",
+            "amount": 25000
+          },
+          {
+            "item": "Surgeon fee",
+            "amount": 40000
+          },
+          {
+            "item": "Anaesthetist fee",
+            "amount": 10000
+          },
+          {
+            "item": "Operation theatre charges",
+            "amount": 25000
+          },
+          {
+            "item": "Nursing charges",
+            "amount": 4000
+          },
+          {
+            "item": "Laboratory investigations",
+            "amount": 3500
+          }
+        ]
+      },
+      {
+        "document": "pharmacy_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "pharmacy_bill",
+        "stated_total": 10800,
+        "line_items": [
+          {
+            "item": "Medicines and IV fluids",
+            "amount": 9800
+          },
+          {
+            "item": "Gloves",
+            "amount": 600
+          },
+          {
+            "item": "Face masks",
+            "amount": 400
+          }
+        ]
+      },
+      {
+        "document": "prescription.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "prescription"
+      },
+      {
+        "document": "lab_report.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "lab_report"
+      },
+      {
+        "document": "scan_report.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "scan_report"
+      },
+      {
+        "document": "discharge_summary.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "discharge_summary",
+        "admission_date": "2026-08-02",
+        "discharge_date": "2026-08-06"
+      },
+      {
+        "document": "pre_hospitalisation_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "pre_hospitalization_bill",
+        "stated_total": 3300,
+        "line_items": [
+          {
+            "item": "Surgeon consultation",
+            "amount": 800
+          },
+          {
+            "item": "Ultrasound abdomen",
+            "amount": 2500
+          }
+        ]
+      },
+      {
+        "document": "post_hospitalisation_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "post_hospitalization_bill",
+        "stated_total": 1500,
+        "line_items": [
+          {
+            "item": "Follow-up consultation",
+            "amount": 900
+          },
+          {
+            "item": "Wound dressing",
+            "amount": 600
+          }
+        ]
+      },
+      {
+        "document": "ambulance_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828",
+        "patient_name": "Lakshmi Menon",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "ambulance_bill",
+        "stated_total": 1500,
+        "line_items": [
+          {
+            "item": "Road ambulance",
+            "amount": 1500
+          }
+        ]
+      }
+    ],
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Patient: Lakshmi Menon | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0828"
+    }
+  }
+]

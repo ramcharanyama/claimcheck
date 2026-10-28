@@ -1,0 +1,59 @@
+{
+  "case_id": "case_28_full_reimbursement_all_documents",
+  "label": "Reimbursement - complete set of 10 documents",
+  "claim_type": "reimbursement",
+  "story": "Gallbladder surgery with every document type: a deluxe room above the limit, gloves and masks on the pharmacy bill, and an undeclared thyroid condition that only shows up in the prescription.",
+  "expected_rules": {
+    "RULE_REQ_DOCS": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_WAITING_PERIOD": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_ROOM_RENT_CAP": [
+      "violated",
+      20000.0
+    ],
+    "RULE_NON_PAYABLE_ITEMS": [
+      "violated",
+      1000.0
+    ],
+    "RULE_PRE_HOSPITALIZATION": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_POST_HOSPITALIZATION": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_AMBULANCE_LIMIT": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_SUM_INSURED": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_PRE_EXISTING_DISCLOSURE": [
+      "needs_review",
+      null
+    ],
+    "AMB_PRE_EXISTING_CONDITIONS": [
+      "needs_review",
+      null
+    ]
+  },
+  "expected_checks": {
+    "CHECK_PATIENT_NAME": "satisfied",
+    "CHECK_POLICY_NUMBER": "satisfied",
+    "CHECK_DATES": "satisfied",
+    "CHECK_BILL_ARITHMETIC": "satisfied",
+    "CHECK_CLAIMED_VS_BILLED": "satisfied",
+    "CHECK_DUPLICATE_CHARGES": "satisfied"
+  },
+  "expected_verdict": "needs_review",
+  "expected_payable": 103600.0,
+  "scanned_documents": []
+}

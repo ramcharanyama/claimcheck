@@ -50,10 +50,24 @@ def parse_json_response(content: str | None) -> dict:
     start, end = text.find("{"), text.rfind("}")
     if start == -1 or end <= start:
         raise NebiusResponseError(f"No JSON object found in model response: {text[:200]!r}")
+    candidate = text[start:end + 1]
     try:
-        return json.loads(text[start:end + 1])
+        return json.loads(candidate)
     except json.JSONDecodeError as exc:
-        raise NebiusResponseError(f"Model returned invalid JSON: {exc}") from exc
+        repaired = _repair_json(candidate)
+        try:
+            return json.loads(repaired)
+        except json.JSONDecodeError:
+            raise NebiusResponseError(f"Model returned invalid JSON: {exc}") from exc
+
+
+def _repair_json(text: str) -> str:
+    """Fix the small slips models make in long JSON replies (only used after a parse error):
+    trailing commas, and a missing comma between two values on separate lines."""
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+    # value end ("..." / number / true / false / null / } / ]) followed by a new line that starts a new item
+    text = re.sub(r'(["}\]\d]|true|false|null)(\s*\n\s*)(["{\[])', r"\1,\2\3", text)
+    return text
 
 
 def chat_json(client, model: str, system: str, user: str,
@@ -66,7 +80,9 @@ def chat_json(client, model: str, system: str, user: str,
     retry once with a larger budget before giving up with a clear error.
     """
     budget = max_tokens
+    attempts = 0
     while True:
+        attempts += 1
         response = client.chat.completions.create(
             model=model,
             messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
@@ -78,7 +94,13 @@ def chat_json(client, model: str, system: str, user: str,
         finish = getattr(choice, "finish_reason", None)
 
         if content and content.strip():
-            return parse_json_response(content)
+            try:
+                return parse_json_response(content)
+            except NebiusResponseError:
+                if attempts >= 2:
+                    raise
+                temperature = 0.0  # ask once more, as deterministically as possible
+                continue
         if finish == "length" and budget < retry_max_tokens:
             budget = retry_max_tokens
             continue

@@ -1,0 +1,30 @@
+{
+  "case_id": "case_25_accident_emergency",
+  "label": "Reimbursement - road accident in the first month",
+  "claim_type": "reimbursement",
+  "story": "Admitted on day 11 of the policy after a road accident: the 30-day waiting period does not apply to accidents.",
+  "expected_rules": {
+    "RULE_REQ_DOCS": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_WAITING_PERIOD": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_ROOM_RENT_CAP": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_AMBULANCE_LIMIT": [
+      "satisfied",
+      0.0
+    ]
+  },
+  "expected_checks": {
+    "CHECK_CLAIMED_VS_BILLED": "satisfied"
+  },
+  "expected_verdict": "approved",
+  "expected_payable": 41800.0,
+  "scanned_documents": []
+}

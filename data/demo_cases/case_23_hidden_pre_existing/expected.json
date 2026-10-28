@@ -1,0 +1,38 @@
+{
+  "case_id": "case_23_hidden_pre_existing",
+  "label": "Reimbursement - undeclared pre-existing disease",
+  "claim_type": "reimbursement",
+  "story": "The claim form says 'no existing conditions', but the scanned prescription, lab report and discharge summary show long-standing diabetes and hypertension.",
+  "expected_rules": {
+    "RULE_REQ_DOCS": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_WAITING_PERIOD": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_ROOM_RENT_CAP": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_PRE_EXISTING_DISCLOSURE": [
+      "needs_review",
+      null
+    ],
+    "AMB_PRE_EXISTING_CONDITIONS": [
+      "needs_review",
+      null
+    ]
+  },
+  "expected_checks": {
+    "CHECK_PATIENT_NAME": "satisfied",
+    "CHECK_BILL_ARITHMETIC": "satisfied",
+    "CHECK_CLAIMED_VS_BILLED": "satisfied"
+  },
+  "expected_verdict": "needs_review",
+  "expected_payable": 26400.0,
+  "scanned_documents": [
+    "prescription.pdf"
+  ]
+}

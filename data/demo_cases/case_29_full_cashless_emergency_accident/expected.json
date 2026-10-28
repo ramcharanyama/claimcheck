@@ -1,0 +1,42 @@
+{
+  "case_id": "case_29_full_cashless_emergency_accident",
+  "label": "Cashless - emergency accident, complete set of 6 documents",
+  "claim_type": "cashless",
+  "story": "Road accident on day 20 of the policy: emergency cashless request sent the next morning, with reports. INR 3.8 lakh was already paid this year, so the approval is limited by the remaining sum insured.",
+  "expected_rules": {
+    "RULE_CASHLESS_PREAUTH": [
+      "satisfied",
+      null
+    ],
+    "RULE_WAITING_PERIOD": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_ROOM_RENT_CAP": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_NON_PAYABLE_ITEMS": [
+      "violated",
+      800.0
+    ],
+    "RULE_AMBULANCE_LIMIT": [
+      "violated",
+      500.0
+    ],
+    "RULE_SUM_INSURED": [
+      "violated",
+      31800.0
+    ],
+    "RULE_PRE_EXISTING_DISCLOSURE": [
+      "satisfied",
+      0.0
+    ]
+  },
+  "expected_checks": {
+    "CHECK_BILL_ARITHMETIC": "satisfied"
+  },
+  "expected_verdict": "approved",
+  "expected_payable": 120000.0,
+  "scanned_documents": []
+}

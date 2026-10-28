@@ -914,6 +914,9 @@ def evaluate(
         RuleType.SUB_LIMIT.value: _evaluate_sub_limit,
         RuleType.NON_PAYABLE_ITEMS.value: _evaluate_non_payable_items,
     }
+    # ClaimCheck v3 coverage rules (policy page 5), kept in their own module.
+    from src.engine.coverage_rules import EVALUATORS as _COVERAGE_EVALUATORS
+    evaluators.update(_COVERAGE_EVALUATORS)
 
     # Evaluate executable rules
     for rule in rulebook.rules:

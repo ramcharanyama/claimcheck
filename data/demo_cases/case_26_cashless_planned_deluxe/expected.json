@@ -1,0 +1,38 @@
+{
+  "case_id": "case_26_cashless_planned_deluxe",
+  "label": "Cashless - planned surgery in a deluxe room",
+  "claim_type": "cashless",
+  "story": "Pre-authorisation for gallbladder surgery sent 5 days ahead. The deluxe room is above the cap, so doctor and theatre fees are only paid in proportion.",
+  "expected_rules": {
+    "RULE_CASHLESS_PREAUTH": [
+      "satisfied",
+      null
+    ],
+    "RULE_WAITING_PERIOD": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_ROOM_RENT_CAP": [
+      "violated",
+      41625.0
+    ],
+    "RULE_NON_PAYABLE_ITEMS": [
+      "violated",
+      1000.0
+    ],
+    "RULE_SUM_INSURED": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_PRE_EXISTING_DISCLOSURE": [
+      "satisfied",
+      0.0
+    ]
+  },
+  "expected_checks": {
+    "CHECK_BILL_ARITHMETIC": "satisfied"
+  },
+  "expected_verdict": "approved",
+  "expected_payable": 84375.0,
+  "scanned_documents": []
+}

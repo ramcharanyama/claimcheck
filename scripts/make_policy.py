@@ -424,6 +424,48 @@ def build_synthetic_policy_pdf(output_path: str | Path) -> Path:
         )
     )
 
+    # =========================================================================
+    # PAGE 5: Hospitalisation Benefits, Ambulance, Sum Insured, Cashless, Disclosure
+    # (Appended in ClaimCheck v3. Pages 1-4 are unchanged so existing citations hold.)
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(Spacer(1, 14))
+    story.append(Paragraph("Section 5: Hospitalisation Benefits, Cashless Facility and Disclosure", h1_style))
+    story.append(
+        Paragraph(
+            "This section sets the time windows for expenses connected to a hospitalisation, the limits on "
+            "ambulance charges and total payouts, the conditions for cashless treatment, and the duty to "
+            "disclose existing medical conditions.",
+            body_style,
+        )
+    )
+    section_5_texts = [
+        "Section 5.1 (Pre-Hospitalisation Expenses): Medical expenses incurred during the 30 days immediately "
+        "before the date of admission, for the same illness or injury for which the hospitalisation claim is "
+        "admissible, are payable. Pre-hospitalisation expenses incurred more than 30 days before the date of "
+        "admission are non-payable.",
+        "Section 5.2 (Post-Hospitalisation Expenses): Medical expenses incurred during the 60 days immediately "
+        "after the date of discharge, for the same illness or injury for which the hospitalisation claim is "
+        "admissible, are payable. Post-hospitalisation expenses incurred more than 60 days after the date of "
+        "discharge are non-payable.",
+        "Section 5.3 (Ambulance Charges): Road ambulance charges for transfer to the hospital are payable up to "
+        "a maximum of INR 2000 per hospitalisation. Any ambulance charges in excess of INR 2000 per "
+        "hospitalisation are non-payable.",
+        "Section 5.4 (Sum Insured): The total amount payable for all claims in a policy year shall not exceed "
+        "the Sum Insured of INR 500000. Any amount claimed in excess of the Sum Insured is non-payable.",
+        "Section 5.5 (Cashless Pre-Authorisation): Cashless treatment at a network hospital requires a "
+        "pre-authorisation request containing both of the following documents: (1) a completed "
+        "Pre-Authorisation Form and (2) the treating doctor's Cost Estimate. For planned hospitalisation the "
+        "request must reach the insurer at least 72 hours before admission. For emergency hospitalisation the "
+        "request must reach the insurer within 24 hours of admission. Cashless approval is limited to amounts "
+        "payable under this policy; any non-payable amount must be paid by the insured person to the hospital.",
+        "Section 5.6 (Disclosure of Existing Conditions): The insured person must declare every existing medical "
+        "condition in the claim form or pre-authorisation form. Any medical condition found in the medical "
+        "records that was not declared shall be referred for medical review before the claim is settled.",
+    ]
+    for text in section_5_texts:
+        story.append(Paragraph(text, clause_style))
+
     doc.build(story, canvasmaker=NumberedCanvas)
     return out_file.resolve()
 

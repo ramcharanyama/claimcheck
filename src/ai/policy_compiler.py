@@ -54,6 +54,13 @@ PARAMETER_SCHEMA = """Use exactly these parameter keys for each rule type. Take 
   For room_rent_cap, quote the whole clause, including any sentence about a ratio or proportional deduction.
 - sub_limit: {"category": procedure name, "max_limit_inr": number, "currency": "INR", "unit": what the limit is counted per, "inclusive_items": [items the limit covers]}
 - non_payable_items: {"excluded_items": [item names]}
+- pre_hospitalization: {"window_days": integer, "reference_date": "admission_date"}
+- post_hospitalization: {"window_days": integer, "reference_date": "discharge_date"}
+- ambulance_limit: {"max_limit_inr": number, "currency": "INR", "unit": what the limit is counted per}
+- sum_insured: {"sum_insured_inr": number, "currency": "INR", "unit": the period it applies to}
+- cashless_preauthorization: {"required_documents": [document names], "planned_notice_hours_before": integer, "emergency_notice_hours_after": integer}
+- pre_existing_disclosure: {"action_if_undeclared": what happens to an undeclared condition, in snake_case}
+Only create a rule of a type above if the policy actually contains such a clause.
 Write every name and list item in lowercase snake_case, for example "face_masks", "discharge_summary", "policy_inception_date"."""
 
 

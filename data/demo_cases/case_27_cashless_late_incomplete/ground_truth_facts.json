@@ -1,0 +1,89 @@
+[
+  {
+    "name": "preauthorization_request",
+    "value": {
+      "hospitalization_type": "planned",
+      "documents_present": [
+        "preauthorization_form"
+      ],
+      "request_datetime": "2026-09-09T16:00",
+      "admission_datetime": "2026-09-10T09:00"
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Request submitted to insurer on: 09-Sep-2026 16:00."
+    }
+  },
+  {
+    "name": "hospitalization_details",
+    "value": {
+      "policy_inception_date": "2026-01-01",
+      "admission_date": "2026-09-10",
+      "days_elapsed": 252,
+      "cause": "illness",
+      "diagnosis": "inguinal hernia"
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Type of admission: Planned. Planned admission: 10-Sep-2026 09:00."
+    }
+  },
+  {
+    "name": "room_rent_billing",
+    "value": {
+      "room_type": "twin_sharing",
+      "daily_rate": 3500.0,
+      "days": 2,
+      "total_amount": 7000.0
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Requested room: Twin sharing, 2 days @ INR 3500.00/day = INR 7000.00."
+    }
+  },
+  {
+    "name": "claim_amount_summary",
+    "value": {
+      "total_claimed": 60000.0,
+      "previously_paid_this_year": 0.0
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Estimated total cost stated by hospital: INR 60000.00."
+    }
+  },
+  {
+    "name": "declared_conditions",
+    "value": {
+      "conditions": []
+    },
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Existing medical conditions declared by the insured: None."
+    }
+  },
+  {
+    "name": "document_details",
+    "value": [
+      {
+        "document": "preauthorisation_form.pdf",
+        "page": 1,
+        "quote": "Patient: Imran Khan | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0927",
+        "patient_name": "Imran Khan",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "preauthorization_form",
+        "admission_date": "2026-09-10"
+      }
+    ],
+    "source": {
+      "document": "preauthorisation_form.pdf",
+      "page": 1,
+      "quote": "Patient: Imran Khan | Policy No: POL-AURA-2026-001 | Claim Ref: PA-2026-0927"
+    }
+  }
+]

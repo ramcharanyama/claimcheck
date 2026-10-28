@@ -1,0 +1,47 @@
+{
+  "case_id": "case_21_reimbursement_all_clear",
+  "label": "Reimbursement - everything in order",
+  "claim_type": "reimbursement",
+  "story": "A complete kidney-infection claim with pre- and post-hospitalisation bills inside the covered windows.",
+  "expected_rules": {
+    "RULE_REQ_DOCS": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_WAITING_PERIOD": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_ROOM_RENT_CAP": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_PRE_HOSPITALIZATION": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_POST_HOSPITALIZATION": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_SUM_INSURED": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_PRE_EXISTING_DISCLOSURE": [
+      "satisfied",
+      0.0
+    ]
+  },
+  "expected_checks": {
+    "CHECK_PATIENT_NAME": "satisfied",
+    "CHECK_POLICY_NUMBER": "satisfied",
+    "CHECK_DATES": "satisfied",
+    "CHECK_BILL_ARITHMETIC": "satisfied",
+    "CHECK_CLAIMED_VS_BILLED": "satisfied",
+    "CHECK_DUPLICATE_CHARGES": "satisfied"
+  },
+  "expected_verdict": "approved",
+  "expected_payable": 38200.0,
+  "scanned_documents": []
+}

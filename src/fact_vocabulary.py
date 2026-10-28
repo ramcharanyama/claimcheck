@@ -22,6 +22,54 @@ class FactDefinition(BaseModel):
 
 
 FACT_VOCABULARY: Dict[str, FactDefinition] = {
+    "document_details": FactDefinition(
+        name="document_details",
+        data_type="list[dict]",
+        unit="INR, dates",
+        meaning="One entry per uploaded document (type, patient name, policy number, dates, stated total, line items, quote) used by the paperwork checks.",
+        example_value=[{"document": "hospital_bill.pdf", "document_type": "hospital_bill", "page": 1,
+                        "quote": "Patient: Priya Patel", "patient_name": "Priya Patel",
+                        "policy_number": "POL-AURA-2026-001", "admission_date": "2026-03-10",
+                        "discharge_date": "2026-03-14", "stated_total": 47400.0,
+                        "line_items": [{"item": "Room charges", "amount": 30000.0}]}],
+    ),
+    "pre_hospitalization_expenses": FactDefinition(
+        name="pre_hospitalization_expenses", data_type="list[dict]", unit="INR, dates",
+        meaning="Bills for the same illness dated before admission, checked against the pre-hospitalisation window.",
+        example_value=[{"description": "MRI scan", "amount": 6500.0, "date": "2026-02-20"}],
+    ),
+    "post_hospitalization_expenses": FactDefinition(
+        name="post_hospitalization_expenses", data_type="list[dict]", unit="INR, dates",
+        meaning="Bills for the same illness dated after discharge, checked against the post-hospitalisation window.",
+        example_value=[{"description": "Physiotherapy", "amount": 4000.0, "date": "2026-04-10"}],
+    ),
+    "ambulance_charges": FactDefinition(
+        name="ambulance_charges", data_type="dict", unit="INR",
+        meaning="Road ambulance charge for transfer to hospital, checked against the ambulance limit.",
+        example_value={"amount": 2500.0},
+    ),
+    "claim_amount_summary": FactDefinition(
+        name="claim_amount_summary", data_type="dict", unit="INR",
+        meaning="Amount claimed on the claim form (or estimate total for cashless) and amounts already paid this policy year.",
+        example_value={"total_claimed": 65000.0, "previously_paid_this_year": 0.0},
+    ),
+    "preauthorization_request": FactDefinition(
+        name="preauthorization_request", data_type="dict", unit="dates and hours",
+        meaning="Cashless request details: planned or emergency, documents included, request and admission times.",
+        example_value={"hospitalization_type": "planned", "documents_present": ["preauthorization_form", "cost_estimate"],
+                       "request_datetime": "2026-03-05T10:00", "admission_datetime": "2026-03-10T09:00"},
+    ),
+    "declared_conditions": FactDefinition(
+        name="declared_conditions", data_type="dict", unit=None,
+        meaning="Existing medical conditions the patient declared on the claim or pre-authorisation form.",
+        example_value={"conditions": ["hypertension"]},
+    ),
+    "medical_conditions_found": FactDefinition(
+        name="medical_conditions_found", data_type="list[dict]", unit=None,
+        meaning="Existing or long-term conditions found anywhere in the medical records, with evidence, for the disclosure check.",
+        example_value=[{"condition": "Type 2 diabetes", "evidence": "Tab Metformin 500 mg BD",
+                        "inferred_from_medicine": True, "document": "prescription.pdf"}],
+    ),
     "submitted_documents": FactDefinition(
         name="submitted_documents",
         data_type="list[str]",

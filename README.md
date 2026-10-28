@@ -1,8 +1,15 @@
 # ClaimCheck 2.0
 
-Policy Compiler and Claim Intelligence Agent for Health Insurance Reimbursement
+Check a health insurance claim against the policy before you submit it.
 
-ClaimCheck 2.0 is an evidence-grounded system engineered to parse, verify, and cross-reference medical reimbursement claims against health insurance policy documents using verifiable source citations, deterministic calculation, and bounded agentic investigation.
+Upload a reimbursement claim or a cashless pre-approval request with any documents (claim form, bills, prescriptions, lab and scan reports, discharge summary, pre/post-hospitalisation bills, ambulance bill, pre-authorisation form, doctor's cost estimate). ClaimCheck tells you, in plain language and with the exact policy quote for every answer:
+
+- how much the policy is expected to pay, and what is deducted and why;
+- mistakes in your documents to fix before submitting (names, policy number, dates, bill totals, over-claiming, duplicate charges);
+- existing illnesses found in the medical records that were not declared;
+- which policy rules apply and which need a person to review.
+
+NVIDIA Nemotron on Nebius Token Factory reads the policy and the documents. Ordinary code checks every quote against the PDF and does all the arithmetic. A person approves the AI-read policy rules once per policy before they are used.
 
 ---
 
@@ -63,23 +70,32 @@ All features listed below are implemented and tested in the codebase:
 ### Core Processing and Adjudication
 - Local PDF Text Extraction [MOCK, LIVE]: In-memory text extraction preserving 1-based page numbers using PyMuPDF.
 - Low-Text Density / Scanned Detection [MOCK, LIVE]: Automatic detection of image-only pages requiring OCR.
-- Deterministic Rule Engine [MOCK, LIVE]: Pure deterministic evaluation of five core health policy rules:
-  - Required Documents check
-  - Initial Waiting Period check (with accident exemption)
-  - Proportional Room Rent Cap (with associated proportional scaling of OT and professional fees)
-  - Specific Disease Sub-limits (e.g. Cataract surgery limits)
-  - Non-Payable Items List exclusion
+- Deterministic Rule Engine [MOCK, LIVE]: Pure deterministic evaluation of eleven policy rules:
+  - Required documents (reimbursement)
+  - Initial 30-day waiting period (accidents exempt)
+  - Room rent cap with proportional deduction of doctor and operation theatre fees
+  - Cataract sub-limit per eye
+  - Non-payable items
+  - Pre-hospitalisation expenses (30-day window) and post-hospitalisation expenses (60-day window)
+  - Ambulance limit per hospitalisation
+  - Yearly sum insured (applied once, after other deductions)
+  - Cashless pre-authorisation (required documents; 72 hours before planned, 24 hours after emergency admission)
+  - Disclosure of existing conditions (undeclared conditions in the records go to medical review)
+- Claim Types [MOCK, LIVE]: Reimbursement and cashless pre-approval; each uses the rules that apply to it, and cashless results are shown as an estimated approval.
+- Document Mistake Checks [MOCK, LIVE]: Patient name (tolerant of scanner letter confusions), policy number, admission and discharge dates, bill arithmetic, claimed vs billed, duplicate charges. These never deduct money; they tell the user what to fix.
+- Hidden Pre-Existing Disease Detection [LIVE]: Conditions are read from every document, including prescriptions and lab reports; a condition implied only by a long-term medicine is marked as inferred and always goes to review.
+- Payout Summary [MOCK, LIVE]: Claimed amount (never more than the bills) minus policy deductions, capped by the remaining sum insured, with one verdict: payable, needs review, fix documents, on hold, or not payable.
+- Human Approval of AI Rules [LIVE]: Rules compiled by Nemotron are applied only after a person approves them, and only if their quote was verified on the cited page.
 - Cross-Document Conflict Scoping [MOCK, LIVE]: Scoped duplicate detection ensuring distinct sub-bill totals (e.g. room rent vs professional fees) do not trigger false conflicts.
 - Evidence Citation Highlighter [MOCK, LIVE]: In-memory PyMuPDF rendering with exact clause bounding box highlight annotations.
 - Bounded Investigation Agent [MOCK, LIVE]: Fast model action selector with strict JSON validation, Pydantic schema enforcement, and a hard cap of 2 iterations.
 - Tavily Regulatory Search Client [MOCK, LIVE]: Standard library (urllib) integration querying statutory guidelines with an in-memory audit log and injectable test transport.
-- Clean 5-Tab User Interface [MOCK, LIVE]: Built with Streamlit, containing Overview, Policy rulebook, Findings, Needs your input, and Report export. Plain-text status badges (color + text), zero emojis.
+- Plain-Language Dashboard [MOCK, LIVE]: Streamlit app that opens with one sentence ("Expected payout X of Y claimed") and a settlement strip, then lists what needs attention. Tabs: money deducted, document mistakes, medical history, coverage timeline, all policy rules, needs your input, report. Each answer has its proof: policy quote, working, and the highlighted page.
 
-### Features Not Yet Measured
-The following benchmarks and evaluations have offline infrastructure prepared, but live cloud model metrics are not yet measured:
-- End-to-end cloud latency on live Nebius Token Factory endpoints: not yet measured
-- Live Nemotron compiler precision and recall on unseen 100-page commercial policies: not yet measured
-- Live token consumption and financial cost across 20 synthetic packets: not yet measured
+### Not Yet Measured
+- Live Nemotron accuracy on the six policy rules added on page 5 (pre/post-hospitalisation, ambulance, sum insured, cashless, disclosure); the live results in section 9 cover the first five rules.
+- Live accuracy on the seven demo cases in `data/demo_cases/` (mock-mode results are tested).
+- Accuracy on real, long commercial policies.
 
 ---
 
@@ -118,7 +134,18 @@ For Streamlit Community Cloud:
 
 ---
 
-## 5. Setup on Windows PowerShell
+## 5. Setup
+
+### macOS / Linux
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env        # add your keys for Live mode; Mock mode needs none
+python -m streamlit run app.py
+```
+
+### Windows PowerShell
 
 ### Step 1: Create and Activate Virtual Environment
 ```powershell
@@ -147,6 +174,12 @@ Edit `.env` to supply your API credentials if running in Live mode. If testing i
 .\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 Open `http://localhost:8501` in your browser.
+
+### Try it
+1. **Demo data (no API keys):** choose the claim type, keep "Use a demo case", pick a case, and click **Check my claim**. The seven demo cases in `data/demo_cases/` cover a clean claim, document mistakes, an undeclared pre-existing disease (scanned prescription), pre/post-hospitalisation and ambulance limits, a road accident in the waiting period, and two cashless requests.
+2. **Live AI (your own documents):** add the keys to `.env`, choose "Live AI", click **Read the policy with AI**, review and approve the rules, upload your documents (or keep a demo case), and click **Check my claim**.
+
+To regenerate the demo cases: `python benchmark/generate_demo_cases.py`.
 
 ### Run Automated Test Suite
 ```powershell
@@ -190,14 +223,29 @@ Tavily is utilized exclusively for statutory and regulatory search when policy t
 
 The evaluation harness benchmarks deterministic accuracy across 20 synthetic claim packets covering admissible claims, waiting period violations, proportional room-rent deductions, and ambiguous exclusions.
 
-| Metric | Mock Mode (Deterministic Baseline) | Live Routed Mode (Nemotron + Deterministic) |
+| Metric | Mock Mode (Deterministic Baseline) |
+| :--- | :--- |
+| Operative Rule Precision | 1.00 (20/20 packets) |
+| Proportional Arithmetic Accuracy | 1.00 (exact match) |
+| False Violation Warning Rate | 0.00 |
+| Citation Verification Accuracy | 1.00 |
+| Average Latency per Packet | 0.018s |
+
+### Live results (NVIDIA Nemotron on Nebius Token Factory)
+
+Measured with `scripts/run_baseline.py` on the first five policy rules (before page 5 was added). Full details, raw replies and token counts are in `evaluation/baseline/` and `evaluation/after_fixes/`.
+
+| Measure | First live run | After fixes |
 | :--- | :--- | :--- |
-| Operative Rule Precision | 1.00 (20/20 packets) | not yet measured |
-| Proportional Arithmetic Accuracy | 1.00 (exact match) | not yet measured |
-| False Violation Warning Rate | 0.00 | not yet measured |
-| Citation Verification Accuracy | 1.00 | not yet measured |
-| Average Latency per Packet | 0.018s | not yet measured |
-| Estimated API Cost per Packet | INR 0.00 | not yet measured |
+| Policy rules found (Nemotron 3 Super) | 5/5 | 5/5 |
+| Quotes verbatim on the cited page | 5/5 | 5/5 |
+| Rule parameters correct | 14/18 | 17/18 |
+| Room-rent proportional formula captured | no | yes |
+| Pre-existing-conditions ambiguity found | no | yes, quote verified |
+| Scanned packet 11 facts matched (Nemotron 3 Nano + OCR) | 1/3 | 3/3 |
+| Invented rules or quotes | none | none |
+| Tokens for one policy + three claims | 5,059 in / 15,590 out | 5,752 in / 17,163 out |
+| Estimated cost for that run | about $0.02 | about $0.02 |
 
 ---
 
@@ -207,3 +255,5 @@ The evaluation harness benchmarks deterministic accuracy across 20 synthetic cla
 2. Not an Insurer Decision: ClaimCheck 2.0 is an adjudication audit tool. All calculations and findings are estimates intended for audit assistance and do not constitute an official underwriting approval or denial.
 3. OCR Dependencies: Full image OCR transcription requires external Tesseract binaries and language files (`eng.traineddata`). In environments without Tesseract, scanned pages are safely flagged as `ocr_unavailable` rather than generating hallucinated content.
 4. Human Review Mandatory: Any finding flagged as `NEEDS REVIEW` or `UNABLE TO VERIFY` requires licensed human claims adjuster intervention.
+5. Dates Without Times: When a pre-authorisation shows only dates, ClaimCheck decides only if every possible time of day gives the same answer; otherwise it asks a person.
+6. Inferred Conditions: A condition implied by a long-term medicine is an AI inference. It is labelled as inferred and always sent to medical review, never used to deduct money.

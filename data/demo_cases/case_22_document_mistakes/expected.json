@@ -1,0 +1,35 @@
+{
+  "case_id": "case_22_document_mistakes",
+  "label": "Reimbursement - mistakes in the documents",
+  "claim_type": "reimbursement",
+  "story": "Name and policy number typos, a bill that does not add up, and a claim for more than was billed.",
+  "expected_rules": {
+    "RULE_REQ_DOCS": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_WAITING_PERIOD": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_ROOM_RENT_CAP": [
+      "satisfied",
+      0.0
+    ],
+    "RULE_SUM_INSURED": [
+      "satisfied",
+      0.0
+    ]
+  },
+  "expected_checks": {
+    "CHECK_PATIENT_NAME": "violated",
+    "CHECK_POLICY_NUMBER": "violated",
+    "CHECK_DATES": "satisfied",
+    "CHECK_BILL_ARITHMETIC": "violated",
+    "CHECK_CLAIMED_VS_BILLED": "violated",
+    "CHECK_DUPLICATE_CHARGES": "satisfied"
+  },
+  "expected_verdict": "fix_documents",
+  "expected_payable": 43300.0,
+  "scanned_documents": []
+}

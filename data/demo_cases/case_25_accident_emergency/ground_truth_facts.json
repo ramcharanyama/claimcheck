@@ -1,0 +1,157 @@
+[
+  {
+    "name": "submitted_documents",
+    "value": [
+      "claim_form",
+      "hospital_bill",
+      "discharge_summary"
+    ],
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Documents enclosed: Claim Form, Hospital Bill, Discharge Summary."
+    }
+  },
+  {
+    "name": "hospitalization_details",
+    "value": {
+      "policy_inception_date": "2026-01-01",
+      "admission_date": "2026-01-12",
+      "discharge_date": "2026-01-16",
+      "days_elapsed": 11,
+      "cause": "accidental_injury",
+      "diagnosis": "fracture of right radius"
+    },
+    "source": {
+      "document": "discharge_summary.pdf",
+      "page": 1,
+      "quote": "Diagnosis: Fracture of right radius after a road traffic accident on 12-Jan-2026. Cause: accidental injury."
+    }
+  },
+  {
+    "name": "room_rent_billing",
+    "value": {
+      "room_type": "general_ward",
+      "daily_rate": 3000.0,
+      "days": 4,
+      "total_amount": 12000.0
+    },
+    "source": {
+      "document": "hospital_bill.pdf",
+      "page": 1,
+      "quote": "Room rent (General ward): 4 days @ INR 3000.00/day = INR 12000.00."
+    }
+  },
+  {
+    "name": "ambulance_charges",
+    "value": {
+      "amount": 1800.0
+    },
+    "source": {
+      "document": "ambulance_bill.pdf",
+      "page": 1,
+      "quote": "Road ambulance from accident site to Metro Trauma Centre on 12-Jan-2026: INR 1800.00."
+    }
+  },
+  {
+    "name": "claim_amount_summary",
+    "value": {
+      "total_claimed": 41800.0,
+      "previously_paid_this_year": 0.0
+    },
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Total amount claimed: INR 41,800.00."
+    }
+  },
+  {
+    "name": "declared_conditions",
+    "value": {
+      "conditions": []
+    },
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Existing medical conditions declared by the insured: None."
+    }
+  },
+  {
+    "name": "document_details",
+    "value": [
+      {
+        "document": "claim_form.pdf",
+        "page": 1,
+        "quote": "Patient: Arjun Nair | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0125",
+        "patient_name": "Arjun Nair",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "claim_form",
+        "admission_date": "2026-01-12",
+        "discharge_date": "2026-01-16"
+      },
+      {
+        "document": "hospital_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Arjun Nair | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0125",
+        "patient_name": "Arjun Nair",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "hospital_bill",
+        "admission_date": "2026-01-12",
+        "discharge_date": "2026-01-16",
+        "stated_total": 40000,
+        "line_items": [
+          {
+            "item": "Room rent (General ward)",
+            "amount": 12000
+          },
+          {
+            "item": "Orthopaedic surgeon fee",
+            "amount": 15000
+          },
+          {
+            "item": "Plaster and dressings",
+            "amount": 4500
+          },
+          {
+            "item": "X-ray and CT imaging",
+            "amount": 6500
+          },
+          {
+            "item": "Pharmacy",
+            "amount": 2000
+          }
+        ]
+      },
+      {
+        "document": "discharge_summary.pdf",
+        "page": 1,
+        "quote": "Patient: Arjun Nair | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0125",
+        "patient_name": "Arjun Nair",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "discharge_summary",
+        "admission_date": "2026-01-12",
+        "discharge_date": "2026-01-16"
+      },
+      {
+        "document": "ambulance_bill.pdf",
+        "page": 1,
+        "quote": "Patient: Arjun Nair | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0125",
+        "patient_name": "Arjun Nair",
+        "policy_number": "POL-AURA-2026-001",
+        "document_type": "ambulance_bill",
+        "stated_total": 1800,
+        "line_items": [
+          {
+            "item": "Road ambulance",
+            "amount": 1800
+          }
+        ]
+      }
+    ],
+    "source": {
+      "document": "claim_form.pdf",
+      "page": 1,
+      "quote": "Patient: Arjun Nair | Policy No: POL-AURA-2026-001 | Claim Ref: CLM-2026-0125"
+    }
+  }
+]
